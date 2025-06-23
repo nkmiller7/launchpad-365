@@ -1,13 +1,13 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-
+import { Database } from '../types/database';
 
 export async function createClient() {
 	const cookieStore = await cookies();
 
-	return createServerClient(
-		"https://ribcayxeubylkmwsqnef.supabase.co",
-		"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmNheXhldWJ5bGttd3NxbmVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2MTQ4NjIsImV4cCI6MjA1NDE5MDg2Mn0.6ia2H0ADkleHwzBDbuzI8UfAgaMTEWL7tc3wY1SDahI",
+	return createServerClient<Database>(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 		{
 			cookies: {
 				getAll() {
