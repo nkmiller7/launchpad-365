@@ -27,9 +27,7 @@ export default async function RootLayout({
 
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  return (
+  const { data: { user } } = await supabase.auth.getUser();  return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
