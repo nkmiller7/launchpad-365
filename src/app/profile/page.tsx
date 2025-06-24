@@ -1,8 +1,8 @@
 import { createClient } from "../../db/sbserver";
 import { redirect } from "next/navigation";
-import DashboardComponent from "./DashboardComponent_new";
+import ProfileComponent from "./ProfileComponent_new";
 
-export default async function DashboardPage() {
+export default async function ProfilePage() {
   const supabase = await createClient();
 
   // Get the current user
@@ -23,5 +23,6 @@ export default async function DashboardPage() {
     console.error("Error fetching profile:", profileError);
     // If profile doesn't exist, we might want to create one or show a setup page
   }
-  return <DashboardComponent user={user} profile={profile} />;
+
+  return <ProfileComponent user={user} profile={profile} />;
 }

@@ -2,10 +2,6 @@
 
 import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
-import { Button } from '../../components/ui/button';
-import { useRouter } from 'next/navigation';
-import { createClient } from '../../db/sbclient';
-import { toast } from '../../hooks/use-toast';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -15,39 +11,24 @@ interface DashboardComponentProps {
 }
 
 export default function DashboardComponent({ user, profile }: DashboardComponentProps) {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
-      router.push('/login');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Welcome to your Dashboard!
-              </h1>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Hello, {user.email}
-              </p>
+        {/* Welcome Header */}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="px-4 py-5 sm:px-6">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Welcome to your Dashboard!
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+              Hello, {user.email}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
             </div>
             <Button 
               onClick={handleSignOut}
