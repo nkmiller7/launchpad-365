@@ -16,8 +16,7 @@ export default function Home() {
       />
       <main className="relative z-10 flex flex-col items-center justify-center gap-12 px-4 pt-40 pb-24 sm:pt-56 sm:pb-32">
         {/* Modernized hero section */}
-        <section className="flex flex-col items-center gap-6">
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-center bg-gradient-to-l from-[#a7c7e7] via-[#b7e7a7] via-[#fff9a7] via-[#ffd1a7] to-[#f7a7a7] bg-clip-text text-transparent">
+        <section className="flex flex-col items-center gap-6">          <h1 className="text-4xl sm:text-5xl font-extrabold text-center bg-gradient-to-l from-[#7ba7d9] via-[#91d991] via-[#f5f091] via-[#f5b891] to-[#f19191] bg-clip-text text-transparent">
             Welcome to Your Microsoft Launchpad
           </h1>
           <p className="max-w-2xl text-center text-lg sm:text-2xl text-muted-foreground font-medium leading-relaxed">
