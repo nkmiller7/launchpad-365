@@ -20,6 +20,7 @@ export function LoginForm() {
             formData.get("email") as string,
             formData.get("password") as string,
         )
+        
 
         if(error) toast({title: 'Error Logging In', description: error.message})
 
@@ -38,7 +39,7 @@ export function LoginForm() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" name={'email'} placeholder="email@example.com" required />
+                                <Input id="email" type="email" name={'email'} placeholder="alias@microsoft.com" required />
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">

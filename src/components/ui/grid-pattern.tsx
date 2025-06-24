@@ -10,6 +10,13 @@ import {
 
 import { cn } from "../../lib/utils";
 
+const msColors = [
+  "#F25022", // Orange
+  "#7FBA00", // Green
+  "#00A4EF", // Blue
+  "#FFB900", // Yellow
+];
+
 export interface AnimatedGridPatternProps
   extends ComponentPropsWithoutRef<"svg"> {
   width?: number;
@@ -31,7 +38,7 @@ export function AnimatedGridPattern({
   strokeDasharray = 0,
   numSquares = 50,
   className,
-  maxOpacity = 0.5,
+  maxOpacity = 0.7,
   duration = 4,
   repeatDelay = 0.5,
   ...props
@@ -48,11 +55,12 @@ export function AnimatedGridPattern({
     ];
   }
 
-  // Adjust the generateSquares function to return objects with an id, x, and y
+  // Adjust the generateSquares function to return objects with an id, x, y, and color
   function generateSquares(count: number) {
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       pos: getPos(),
+      color: msColors[i % msColors.length],
     }));
   }
 
@@ -64,6 +72,7 @@ export function AnimatedGridPattern({
           ? {
               ...sq,
               pos: getPos(),
+              color: msColors[Math.floor(Math.random() * msColors.length)], // randomize color on move
             }
           : sq,
       ),
@@ -127,7 +136,7 @@ export function AnimatedGridPattern({
       </defs>
       <rect width="100%" height="100%" fill={`url(#${id})`} />
       <svg x={x} y={y} className="overflow-visible">
-        {squares.map(({ pos: [x, y], id }, index) => (
+        {squares.map(({ pos: [x, y], id, color }, index) => (
           <motion.rect
             initial={{ opacity: 0 }}
             animate={{ opacity: maxOpacity }}
@@ -143,7 +152,7 @@ export function AnimatedGridPattern({
             height={height - 1}
             x={x * width + 1}
             y={y * height + 1}
-            fill="currentColor"
+            fill={color}
             strokeWidth="0"
           />
         ))}

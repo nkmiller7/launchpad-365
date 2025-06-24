@@ -32,7 +32,7 @@ export default function Login(){
                 )}
             />
         </div>
-            <TypingAnimation className={'absolute lg:left-24 xl:left-50 lg:max-w-sm xl:max-w-lg !leading-snug top-70 text-left '} >Your journey to empower every person and every organization on the planet to acheive more starts here!</TypingAnimation>
+            <TypingAnimation className={'absolute lg:left-24 xl:left-50 lg:max-w-sm xl:max-w-lg !leading-snug top-70 text-left '} >Your journey to empower every person and every organization on the planet to achieve more starts here!</TypingAnimation>
         </div>
 
     </div>
