@@ -1,8 +1,8 @@
-import { createClient } from './sbserver';
+import { createClient } from './sbclient';
 
 // Profile operations
 export async function getUserProfile(userId: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   
   const { data, error } = await supabase
     .from('profiles')
@@ -57,7 +57,7 @@ export async function updateUserProfile(userId: string, updates: {
 
 // Task operations
 export async function getUserTasks(userId: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   
   const { data, error } = await supabase
     .from('tasks')
@@ -117,7 +117,7 @@ export async function updateTaskStatus(
   status: 'pending' | 'in_progress' | 'completed' | 'skipped',
   notes?: string
 ) {
-  const supabase = await createClient();
+  const supabase = createClient();
   
   const { data, error } = await supabase
     .from('tasks')
@@ -253,6 +253,42 @@ export async function assignTaskGroupToEmployee(
     .from('tasks')
     .insert(tasksToCreate)
     .select();
+    
+  if (error) throw error;
+  return data;
+}
+
+// Client-side query functions (for use in client components)
+export async function getUserTasksClient(userId: string) {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('tasks')
+    .select(`
+      *,
+      assigned_by_profile:profiles!tasks_assigned_by_fkey(*),
+      task_template:task_templates(*)
+    `)
+    .eq('assigned_to', userId)
+    .order('created_at', { ascending: false });
+    
+  if (error) throw error;
+  return data;
+}
+
+export async function updateTaskStatusClient(
+  taskId: string, 
+  status: 'pending' | 'in_progress' | 'completed' | 'skipped',
+  notes?: string
+) {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ status, notes })
+    .eq('id', taskId)
+    .select()
+    .single();
     
   if (error) throw error;
   return data;

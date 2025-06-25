@@ -1,6 +1,6 @@
 import { createClient } from "../../db/sbserver";
 import { redirect } from "next/navigation";
-import DashboardComponent from "./DashboardComponent_simple";
+import DashboardComponent from "./DashboardComponent";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -23,5 +23,6 @@ export default async function DashboardPage() {
     console.error("Error fetching profile:", profileError);
     // If profile doesn't exist, we might want to create one or show a setup page
   }
+  
   return <DashboardComponent user={user} profile={profile} />;
 }

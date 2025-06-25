@@ -5,120 +5,126 @@ import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
 import { Button } from '../../components/ui/button';
 import { Users } from 'lucide-react';
+import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type TaskRow = Database['public']['Tables']['tasks']['Row'];
 
 interface DashboardComponentProps {
   user: User;
   profile: Profile | null;
 }
 
-// Simplified types for demo
-interface TaskItem {
-  id: string;
-  title: string;
-  description?: string;
-  due_date: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  assigned_by?: string;
+// Updated to match database structure
+interface TaskItem extends TaskRow {
+  assigned_by_profile?: {
+    full_name: string | null;
+    email: string;
+  } | null;
 }
 
 export default function DashboardComponent({ user, profile }: DashboardComponentProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [allTasks, setAllTasks] = useState<TaskItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('next-7-days');
+  const [loading, setLoading] = useState(true);
 
-  // Sample data for demo
-  const sampleTasks: TaskItem[] = [
-    {
-      id: '1',
-      title: 'Security 101',
-      description: 'Complete the company security training module',
-      due_date: '2025-06-24',
-      status: 'pending',
-      assigned_by: 'John Manager'
-    },
-    {
-      id: '2',
-      title: 'Safety 101',
-      description: 'Review workplace safety guidelines and protocols',
-      due_date: '2025-06-24',
-      status: 'pending',
-      assigned_by: 'Sarah HR'
-    },
-    {
-      id: '3',
-      title: 'Microsoft Teams Setup',
-      description: 'Install and configure Microsoft Teams for communication',
-      due_date: '2025-06-26',
-      status: 'pending',
-      assigned_by: 'Mike IT'
-    },
-    {
-      id: '4',
-      title: 'Complete HR Paperwork',
-      description: 'Fill out all required HR forms and documentation',
-      due_date: '2025-06-28',
-      status: 'completed',
-      assigned_by: 'Sarah HR'
-    },
-    {
-      id: '5',
-      title: 'IT Equipment Setup',
-      description: 'Receive and set up your laptop, monitor, and other equipment',
-      due_date: '2025-06-25',
-      status: 'in_progress',
-      assigned_by: 'Mike IT'
+  // Load tasks from Supabase
+  useEffect(() => {
+    loadUserTasks();
+  }, [user.id]);
+  const loadUserTasks = async () => {
+    try {
+      setLoading(true);
+      const userTasks = await getUserTasksClient(user.id);
+      setAllTasks(userTasks as TaskItem[]);
+    } catch (error) {
+      console.error('Error loading tasks:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
     setTasks(getFilteredTasks());
-  }, [selectedFilter]);
-
+  }, [selectedFilter, allTasks]);
   const getFilteredTasks = (): TaskItem[] => {
     const today = new Date();
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
 
+    let filteredTasks: TaskItem[] = [];
+
     switch (selectedFilter) {
       case 'next-7-days':
-        return sampleTasks.filter(task => {
+        filteredTasks = allTasks.filter(task => {
+          if (!task.due_date) return false;
           const dueDate = new Date(task.due_date);
           return dueDate >= today && dueDate <= sevenDaysFromNow && task.status !== 'completed';
         });
+        break;
       case 'priority-tasks':
         const threeDaysFromNow = new Date(today);
         threeDaysFromNow.setDate(today.getDate() + 3);
-        return sampleTasks.filter(task => {
+        filteredTasks = allTasks.filter(task => {
+          if (!task.due_date) return false;
           const dueDate = new Date(task.due_date);
           return dueDate <= threeDaysFromNow && task.status !== 'completed';
         });
+        break;
       case 'get-started':
-        return sampleTasks.filter(task => task.status === 'pending');
+        filteredTasks = allTasks.filter(task => task.status === 'pending');
+        break;
       case 'microsoft-tasks':
-        return sampleTasks.filter(task => task.title.toLowerCase().includes('microsoft'));
+        filteredTasks = allTasks.filter(task => task.title.toLowerCase().includes('microsoft'));
+        break;
       case 'completed-tasks':
-        return sampleTasks.filter(task => task.status === 'completed');
+        filteredTasks = allTasks.filter(task => task.status === 'completed');
+        break;
+      case 'all-tasks':
+        filteredTasks = allTasks;
+        break;
       default:
-        return sampleTasks;
+        filteredTasks = allTasks;
+    }
+
+    // Sort by due date - tasks with due dates first (earliest first), then tasks without due dates
+    return filteredTasks.sort((a, b) => {
+      // Tasks without due dates go to the end
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      
+      // Compare due dates (earliest first)
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    });
+  };
+
+  const toggleTaskComplete = async (taskId: string) => {
+    const task = allTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+      try {
+      await updateTaskStatusClient(taskId, newStatus);
+      
+      // Update local state
+      setAllTasks(prevTasks => 
+        prevTasks.map(t => 
+          t.id === taskId ? { ...t, status: newStatus } : t
+        )
+      );
+    } catch (error) {
+      console.error('Error updating task status:', error);
     }
   };
 
-  const toggleTaskComplete = (taskId: string) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === taskId 
-          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' as const }
-          : task
-      )
-    );
-  };
-
-  const completedTasksCount = sampleTasks.filter(task => task.status === 'completed').length;
-  const totalTasks = sampleTasks.length;
+  const completedTasksCount = allTasks.filter(task => task.status === 'completed').length;
+  const totalTasks = allTasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'No due date';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'long', 
@@ -183,61 +189,65 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
             ))}
           </nav>
         </div>
-      </div>
-
-      {/* Main Content */}
+      </div>      {/* Main Content */}
       <div className="flex-1 p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">
-            {selectedFilter === 'next-7-days' ? 'Upcoming Tasks' : 
-             sidebarItems.find(item => item.id === selectedFilter)?.label || 'Tasks'}
-          </h1>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-lg text-gray-600">Loading your tasks...</div>
+          </div>
+        ) : (
+          <div className="max-w-4xl">
+            <h1 className="text-2xl font-bold text-gray-900 mb-8">
+              {selectedFilter === 'next-7-days' ? 'Upcoming Tasks' : 
+               sidebarItems.find(item => item.id === selectedFilter)?.label || 'Tasks'}
+            </h1>
 
-          <div className="space-y-3">
-            {tasks.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No tasks found for this filter.
-              </div>
-            ) : (
-              tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="checkbox"
-                      checked={task.status === 'completed'}
-                      onChange={() => toggleTaskComplete(task.id)}
-                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div>
-                      <h3 className={`font-medium ${
-                        task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
-                      }`}>
-                        {task.title}
-                      </h3>
-                      {task.description && (
-                        <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+            <div className="space-y-3">
+              {tasks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No tasks found for this filter.
+                </div>
+              ) : (
+                tasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="checkbox"
+                        checked={task.status === 'completed'}
+                        onChange={() => toggleTaskComplete(task.id)}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <div>
+                        <h3 className={`font-medium ${
+                          task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
+                        }`}>
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-700">
+                        {formatDate(task.due_date)}
+                      </div>
+                      {task.assigned_by_profile && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Assigned by {task.assigned_by_profile.full_name || task.assigned_by_profile.email}
+                        </div>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-700">
-                      {formatDate(task.due_date)}
-                    </div>
-                    {task.assigned_by && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Assigned by {task.assigned_by}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
