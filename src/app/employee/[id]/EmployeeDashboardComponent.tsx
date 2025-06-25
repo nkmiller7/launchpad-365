@@ -117,17 +117,16 @@ export default function EmployeeDashboardComponent({
         <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
             <div className="flex items-center gap-4">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="text-gray-700">
                 <a href="/admin">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  <ArrowLeft className="text-gray-700 h-4 w-4 mr-2" />
                   Back to Team
                 </a>
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   {employeeProfile.full_name || "Employee"}'s Dashboard
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">
+                </h1>                <p className="text-gray-700 mt-1 text-sm">
                   Viewing as manager: {managerProfile.full_name || manager.email}
                 </p>
               </div>
@@ -137,28 +136,26 @@ export default function EmployeeDashboardComponent({
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Employee Information Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card>            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <UserCircle className="h-5 w-5" />
                 Employee Information
               </CardTitle>
-              <CardDescription>Basic profile and contact details</CardDescription>
+              <CardDescription className="text-gray-700">Basic profile and contact details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Mail className="h-4 w-4 text-gray-500" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">Email</p>
-                  <p className="text-sm text-gray-600">{employeeProfile.email || "Not provided"}</p>
+                  <p className="text-sm text-gray-700">{employeeProfile.email || "Not provided"}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <UserCircle className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Full Name</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-gray-900">Full Name</p>                  <p className="text-sm text-gray-700">
                     {employeeProfile.full_name || "Not provided"}
                   </p>
                 </div>
@@ -167,8 +164,7 @@ export default function EmployeeDashboardComponent({
               <div className="flex items-center gap-3">
                 <Building className="h-4 w-4 text-gray-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Department</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm font-medium text-gray-900">Department</p>                  <p className="text-sm text-gray-700">
                     {employeeProfile.department || "Not assigned"}
                   </p>
                 </div>
@@ -187,32 +183,30 @@ export default function EmployeeDashboardComponent({
           </Card>
 
           {/* Timeline & Activity Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+          <Card>            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-900">
                 <Calendar className="h-5 w-5" />
                 Account Timeline
               </CardTitle>
-              <CardDescription>Important dates and milestones</CardDescription>
+              <CardDescription className="text-gray-700">Important dates and milestones</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-900">Account Created</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm font-medium text-gray-900">Account Created</p>                <p className="text-sm text-gray-700">
                   {formatDate(employeeProfile.created_at)}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">Last Updated</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   {formatDate(employeeProfile.updated_at)}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900">Manager</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   {managerProfile.full_name || manager.email}
-                </p>              </div>
+                </p></div>
             </CardContent>
           </Card>
         </div>
@@ -222,16 +216,14 @@ export default function EmployeeDashboardComponent({
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
+                <div>                  <CardTitle className="flex items-center gap-2 text-gray-900">
                     <Briefcase className="h-5 w-5" />
                     {employeeProfile.full_name || "Employee"}'s Tasks
                   </CardTitle>
-                  <CardDescription>Onboarding tasks and progress overview</CardDescription>
+                  <CardDescription className="text-gray-700">Onboarding tasks and progress overview</CardDescription>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-gray-900">{progressPercentage}%</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-2xl font-bold text-gray-900">{progressPercentage}%</div>                  <div className="text-sm text-gray-700">
                     {completedTasksCount} of {totalTasks} completed
                   </div>
                 </div>
@@ -251,8 +243,7 @@ export default function EmployeeDashboardComponent({
                 <div className="flex items-center justify-center py-8">
                   <div className="text-gray-600">Loading tasks...</div>
                 </div>
-              ) : tasks.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+              ) : tasks.length === 0 ? (                <div className="text-center py-8 text-gray-700">
                   No tasks assigned yet.
                 </div>
               ) : (
@@ -273,9 +264,8 @@ export default function EmployeeDashboardComponent({
                             task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
                           }`}>
                             {task.title}
-                          </h4>
-                          {task.description && (
-                            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          </h4>                          {task.description && (
+                            <p className="text-sm text-gray-700 mt-1">{task.description}</p>
                           )}
                         </div>
                       </div>
@@ -283,8 +273,7 @@ export default function EmployeeDashboardComponent({
                       <div className="text-right">
                         <Badge className={getStatusColor(task.status)}>
                           {getStatusText(task.status)}
-                        </Badge>
-                        <div className="text-sm text-gray-500 mt-1">
+                        </Badge>                        <div className="text-sm text-gray-700 mt-1">
                           {formatTaskDate(task.due_date)}
                         </div>
                         {task.assigned_by_profile && (

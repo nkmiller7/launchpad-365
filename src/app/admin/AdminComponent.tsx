@@ -89,8 +89,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
           <div className="px-4 py-5 sm:px-6">
             <h1 className="text-2xl font-bold text-gray-900">
               Manager Dashboard
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
+            </h1>            <p className="mt-1 max-w-2xl text-sm text-gray-700">
               Welcome back, {profile.full_name || user.email}. Manage your team below.
             </p>
           </div>
@@ -102,8 +101,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
             <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
               <Users className="h-5 w-5" />
               Your Team ({employees.length} employees)
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            </h2>            <p className="mt-1 text-sm text-gray-700">
               Click on any employee to view their dashboard
             </p>
           </div>
@@ -112,7 +110,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
             {employees.length === 0 ? (
               <div className="text-center py-8">
                 <UserCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">No employees assigned yet</p>
+                <p className="text-gray-700">No employees assigned yet</p>
               </div>
             ) : (              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {employees.map((employee) => {
@@ -121,26 +119,26 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                     <Card key={employee.id} className="hover:shadow-md transition-shadow">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg flex items-center gap-2">
-                          <UserCircle className="h-4 w-4" />
-                          {employee.full_name || "No name set"}
+                          <UserCircle className="text-gray-700 h-4 w-4" />
+                          <p className="text-gray-700">{employee.full_name || "No name set"}</p>
                         </CardTitle>
                         <CardDescription>
-                          {employee.department || "No department"}
+                          <p className="text-gray-700">{employee.department || "No department"}</p>
                         </CardDescription>
                       </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="space-y-2 mb-4">
-                          <p className="text-sm text-gray-600">
+                      <CardContent className="pt-0">                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-gray-700">
                             <span className="font-medium">Role:</span> {employee.role || "employee"}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-700">
                             <span className="font-medium">Joined:</span>{" "}
                             {employee.created_at 
                               ? new Date(employee.created_at).toLocaleDateString()
                               : "Unknown"
                             }
                           </p>
-                        </div>                        {/* Progress Section */}
+                        </div>
+                        {/* Progress Section */}
                         <div className="mb-4 space-y-2">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
@@ -150,7 +148,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                               }}
                             ></div>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-700">
                             {loading ? "Loading..." : `${progress.completedTasks} of ${progress.totalTasks} tasks completed`}
                           </div>
                         </div>
@@ -161,8 +159,8 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                           asChild
                         >
                           <a href={`/employee/${employee.id}`}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Dashboard
+                            <Eye className="text-gray-700 h-4 w-4" />
+                            <p className="text-gray-700">View Dashboard</p>
                           </a>
                         </Button>
                       </CardContent>
