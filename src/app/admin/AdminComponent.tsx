@@ -5,8 +5,17 @@ import { Database } from "../../types/database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Users, Eye, UserCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getUserTasksClient } from "../../db/queries";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+
+interface EmployeeProgress {
+  employeeId: string;
+  completedTasks: number;
+  totalTasks: number;
+  progressPercentage: number;
+}
 
 interface AdminComponentProps {
   user: User;
@@ -15,6 +24,63 @@ interface AdminComponentProps {
 }
 
 export default function AdminComponent({ user, profile, employees }: AdminComponentProps) {
+  const [employeeProgress, setEmployeeProgress] = useState<Map<string, EmployeeProgress>>(new Map());
+  const [loading, setLoading] = useState(true);
+
+  // Load progress for all employees
+  useEffect(() => {
+    loadAllEmployeeProgress();
+  }, [employees]);
+
+  const loadAllEmployeeProgress = async () => {
+    try {
+      setLoading(true);
+      const progressMap = new Map<string, EmployeeProgress>();
+
+      // Load tasks for each employee
+      await Promise.all(
+        employees.map(async (employee) => {
+          try {
+            const tasks = await getUserTasksClient(employee.id);
+            const completedTasks = tasks.filter(task => task.status === 'completed').length;
+            const totalTasks = tasks.length;
+            const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            progressMap.set(employee.id, {
+              employeeId: employee.id,
+              completedTasks,
+              totalTasks,
+              progressPercentage
+            });
+          } catch (error) {
+            console.error(`Error loading tasks for employee ${employee.id}:`, error);
+            // Set default progress for employees with errors
+            progressMap.set(employee.id, {
+              employeeId: employee.id,
+              completedTasks: 0,
+              totalTasks: 0,
+              progressPercentage: 0
+            });
+          }
+        })
+      );
+
+      setEmployeeProgress(progressMap);
+    } catch (error) {
+      console.error('Error loading employee progress:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEmployeeProgress = (employeeId: string): EmployeeProgress => {
+    return employeeProgress.get(employeeId) || {
+      employeeId,
+      completedTasks: 0,
+      totalTasks: 0,
+      progressPercentage: 0
+    };
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -48,45 +114,61 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                 <UserCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500">No employees assigned yet</p>
               </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {employees.map((employee) => (
-                  <Card key={employee.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <UserCircle className="h-4 w-4" />
-                        {employee.full_name || "No name set"}
-                      </CardTitle>
-                      <CardDescription>
-                        {employee.department || "No department"}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-2 mb-4">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">Role:</span> {employee.role || "employee"}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">Joined:</span>{" "}
-                          {employee.created_at 
-                            ? new Date(employee.created_at).toLocaleDateString()
-                            : "Unknown"
-                          }
-                        </p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        asChild
-                      >
-                        <a href={`/employee/${employee.id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Dashboard
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+            ) : (              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {employees.map((employee) => {
+                  const progress = getEmployeeProgress(employee.id);
+                  return (
+                    <Card key={employee.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <UserCircle className="h-4 w-4" />
+                          {employee.full_name || "No name set"}
+                        </CardTitle>
+                        <CardDescription>
+                          {employee.department || "No department"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-2 mb-4">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Role:</span> {employee.role || "employee"}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium">Joined:</span>{" "}
+                            {employee.created_at 
+                              ? new Date(employee.created_at).toLocaleDateString()
+                              : "Unknown"
+                            }
+                          </p>
+                        </div>                        {/* Progress Section */}
+                        <div className="mb-4 space-y-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-out"
+                              style={{ 
+                                width: loading ? '0%' : `${progress.progressPercentage}%` 
+                              }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {loading ? "Loading..." : `${progress.completedTasks} of ${progress.totalTasks} tasks completed`}
+                          </div>
+                        </div>
+
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          asChild
+                        >
+                          <a href={`/employee/${employee.id}`}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Dashboard
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>

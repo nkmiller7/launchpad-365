@@ -6,8 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { ArrowLeft, Mail, Building, UserCircle, Briefcase, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getUserTasksClient } from "../../../db/queries";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
+
+interface TaskItem extends TaskRow {
+  assigned_by_profile?: {
+    full_name: string | null;
+    email: string;
+  } | null;
+}
 
 interface EmployeeDashboardComponentProps {
   manager: User;
@@ -20,6 +30,26 @@ export default function EmployeeDashboardComponent({
   managerProfile, 
   employeeProfile 
 }: EmployeeDashboardComponentProps) {
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load employee's tasks
+  useEffect(() => {
+    loadEmployeeTasks();
+  }, [employeeProfile.id]);
+
+  const loadEmployeeTasks = async () => {
+    try {
+      setLoading(true);
+      const employeeTasks = await getUserTasksClient(employeeProfile.id);
+      setTasks(employeeTasks as TaskItem[]);
+    } catch (error) {
+      console.error('Error loading employee tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "manager":
@@ -39,6 +69,46 @@ export default function EmployeeDashboardComponent({
       day: "numeric",
     });
   };
+
+  const formatTaskDate = (dateString: string | null) => {
+    if (!dateString) return 'No due date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'skipped': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Completed';
+      case 'in_progress': return 'In Progress';
+      case 'skipped': return 'Skipped';
+      default: return 'Pending';
+    }
+  };
+
+  // Sort tasks by due date
+  const sortedTasks = tasks.sort((a, b) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+  });
+
+  const completedTasksCount = tasks.filter(task => task.status === 'completed').length;
+  const totalTasks = tasks.length;
+  const progressPercentage = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -142,7 +212,92 @@ export default function EmployeeDashboardComponent({
                 <p className="text-sm font-medium text-gray-900">Manager</p>
                 <p className="text-sm text-gray-600">
                   {managerProfile.full_name || manager.email}
-                </p>              </div>            </CardContent>
+                </p>              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Employee's Task Dashboard Section */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="h-5 w-5" />
+                    {employeeProfile.full_name || "Employee"}'s Tasks
+                  </CardTitle>
+                  <CardDescription>Onboarding tasks and progress overview</CardDescription>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-gray-900">{progressPercentage}%</div>
+                  <div className="text-sm text-gray-500">
+                    {completedTasksCount} of {totalTasks} completed
+                  </div>
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-gray-600">Loading tasks...</div>
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  No tasks assigned yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sortedTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-3 h-3 rounded-full ${
+                          task.status === 'completed' ? 'bg-green-500' :
+                          task.status === 'in_progress' ? 'bg-blue-500' :
+                          task.status === 'skipped' ? 'bg-gray-400' : 'bg-yellow-500'
+                        }`}></div>
+                        <div>
+                          <h4 className={`font-medium ${
+                            task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
+                          }`}>
+                            {task.title}
+                          </h4>
+                          {task.description && (
+                            <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <Badge className={getStatusColor(task.status)}>
+                          {getStatusText(task.status)}
+                        </Badge>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {formatTaskDate(task.due_date)}
+                        </div>
+                        {task.assigned_by_profile && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            Assigned by {task.assigned_by_profile.full_name || task.assigned_by_profile.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
           </Card>
         </div>
       </div>
