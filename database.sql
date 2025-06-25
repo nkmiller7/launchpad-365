@@ -27,6 +27,15 @@ CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles
 CREATE POLICY "Users can insert their own profile." ON public.profiles
     FOR INSERT WITH CHECK (auth.uid() = id);
 
+CREATE POLICY "Managers and HR can insert any profile" ON public.profiles
+    FOR INSERT WITH CHECK (
+        auth.uid() = id OR
+        EXISTS (
+            SELECT 1 FROM public.profiles p
+            WHERE p.id = auth.uid() AND p.role IN ('manager', 'hr')
+        )
+    );
+
 CREATE POLICY "Users can update own profile." ON public.profiles
     FOR UPDATE USING (auth.uid() = id);
 
