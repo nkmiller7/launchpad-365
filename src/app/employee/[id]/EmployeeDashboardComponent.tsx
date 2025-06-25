@@ -142,8 +142,7 @@ export default function EmployeeDashboardComponent({
                 <p className="text-sm font-medium text-gray-900">Manager</p>
                 <p className="text-sm text-gray-600">
                   {managerProfile.full_name || manager.email}
-                </p>
-              </div>            </CardContent>
+                </p>              </div>            </CardContent>
           </Card>
         </div>
       </div>
