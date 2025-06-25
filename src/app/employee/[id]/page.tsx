@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 import EmployeeDashboardComponent from "./EmployeeDashboardComponent";
 
 interface EmployeePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
+  const { id } = await params;
   const supabase = await createClient();
 
   // Get the current user (manager)
@@ -28,12 +29,11 @@ export default async function EmployeePage({ params }: EmployeePageProps) {
   if (managerProfileError || !managerProfile || managerProfile.role !== "manager") {
     redirect("/dashboard");
   }
-
   // Get the employee's profile
   const { data: employeeProfile, error: employeeError } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (employeeError || !employeeProfile) {
