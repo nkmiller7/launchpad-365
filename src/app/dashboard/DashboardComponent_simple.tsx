@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, startTransition } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 // Simplified types for demo
 interface TaskItem {
@@ -95,7 +95,7 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
     }
   }, [selectedFilter, allTasks]);
 
-  const toggleTaskComplete = useCallback((taskId: string) => {
+  const toggleTaskComplete = (taskId: string) => {
     // Update the task in allTasks state
     setAllTasks(prevTasks => 
       prevTasks.map(task => 
@@ -104,13 +104,7 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
           : task
       )
     );
-  }, []);
-
-  const handleFilterChange = useCallback((filterId: string) => {
-    startTransition(() => {
-      setSelectedFilter(filterId);
-    });
-  }, []);
+  };
 
   // Calculate progress from allTasks state
   const completedTasksCount = allTasks.filter((task: TaskItem) => task.status === 'completed').length;
@@ -172,8 +166,8 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleFilterChange(item.id)}
-                className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-75 ${
+                onClick={() => setSelectedFilter(item.id)}
+                className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-200 ${
                   selectedFilter === item.id
                     ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-semibold shadow-sm border border-blue-200'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
