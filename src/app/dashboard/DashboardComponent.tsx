@@ -238,12 +238,6 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
             )}
           </div>
         </div>
-<<<<<<< HEAD
-      </div>
-    </div>
-  );
-}
-=======
 
         {/* Manager Panel Link */}
         {profile?.role === 'manager' && (
@@ -280,7 +274,6 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
             </div>
           </div>
         </div>
->>>>>>> feca1672c04b20c4a6483fc571677de1e9f1713a
       </div>
     </div>
   );

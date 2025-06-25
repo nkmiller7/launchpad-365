@@ -3,12 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
-<<<<<<< HEAD
 import { createClient } from '../../db/sbclient';
-=======
 import { Button } from '../../components/ui/button';
 import { Users } from 'lucide-react';
->>>>>>> feca1672c04b20c4a6483fc571677de1e9f1713a
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Task = Database['public']['Tables']['tasks']['Row'];
