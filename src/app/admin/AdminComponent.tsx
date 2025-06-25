@@ -4,9 +4,10 @@ import { User } from "@supabase/supabase-js";
 import { Database } from "../../types/database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Users, Eye, UserCircle } from "lucide-react";
+import { Users, Eye, UserCircle, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getUserTasksClient } from "../../db/queries";
+import TaskAssignmentModal from "../../components/TaskAssignmentModal";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
@@ -26,6 +27,7 @@ interface AdminComponentProps {
 export default function AdminComponent({ user, profile, employees }: AdminComponentProps) {
   const [employeeProgress, setEmployeeProgress] = useState<Map<string, EmployeeProgress>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   // Load progress for all employees
   useEffect(() => {
@@ -95,15 +97,27 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
           </div>
         </div>
 
-        {/* Employee List */}
-        <div className="bg-white shadow rounded-lg">
+        {/* Employee List */}        <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Your Team ({employees.length} employees)
-            </h2>            <p className="mt-1 text-sm text-gray-700">
-              Click on any employee to view their dashboard
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Your Team ({employees.length} employees)
+                </h2>
+                <p className="mt-1 text-sm text-gray-700">
+                  Click on any employee to view their dashboard
+                </p>
+              </div>              <Button 
+                onClick={() => setIsTaskModalOpen(true)}
+                variant="outline"
+                className="flex items-center gap-2 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50"
+                disabled={employees.length === 0}
+              >
+                <Plus className="h-4 w-4" />
+                Add Task
+              </Button>
+            </div>
           </div>
           
           <div className="px-4 py-4">
@@ -117,13 +131,12 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                   const progress = getEmployeeProgress(employee.id);
                   return (
                     <Card key={employee.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
+                      <CardHeader className="pb-3">                        <CardTitle className="text-lg flex items-center gap-2">
                           <UserCircle className="text-gray-700 h-4 w-4" />
-                          <p className="text-gray-700">{employee.full_name || "No name set"}</p>
+                          <span className="text-gray-700">{employee.full_name || "No name set"}</span>
                         </CardTitle>
                         <CardDescription>
-                          <p className="text-gray-700">{employee.department || "No department"}</p>
+                          <span className="text-gray-700">{employee.department || "No department"}</span>
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="pt-0">                        <div className="space-y-2 mb-4">
@@ -151,16 +164,14 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                           <div className="text-xs text-gray-700">
                             {loading ? "Loading..." : `${progress.completedTasks} of ${progress.totalTasks} tasks completed`}
                           </div>
-                        </div>
-
-                        <Button 
+                        </div>                        <Button 
                           variant="outline" 
                           className="w-full"
                           asChild
                         >
-                          <a href={`/employee/${employee.id}`}>
+                          <a href={`/employee/${employee.id}`} className="flex items-center gap-2">
                             <Eye className="text-gray-700 h-4 w-4" />
-                            <p className="text-gray-700">View Dashboard</p>
+                            <span className="text-gray-700">View Dashboard</span>
                           </a>
                         </Button>
                       </CardContent>
@@ -170,17 +181,28 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
               </div>
             )}
           </div>
-        </div>
-
-        {/* Quick Actions */}
+        </div>        {/* Quick Actions */}
         <div className="mt-6 flex gap-4 justify-center">
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="text-gray-700">
             <a href="/profile">My Profile</a>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="text-gray-700">
             <a href="/dashboard">My Dashboard</a>
           </Button>
         </div>
+
+        {/* Task Assignment Modal */}
+        <TaskAssignmentModal
+          isOpen={isTaskModalOpen}
+          onClose={() => setIsTaskModalOpen(false)}
+          employees={employees}
+          currentUser={user}
+          onTaskAssigned={() => {
+            // Refresh employee progress after task assignment
+            loadAllEmployeeProgress();
+            setIsTaskModalOpen(false);
+          }}
+        />
       </div>
     </div>
   );

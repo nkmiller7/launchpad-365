@@ -293,3 +293,106 @@ export async function updateTaskStatusClient(
   if (error) throw error;
   return data;
 }
+
+// Client-side template operations
+export async function getTaskTemplatesClient(department?: string) {
+  const supabase = createClient();
+  
+  let query = supabase
+    .from('task_templates')
+    .select('*')
+    .order('title');
+    
+  if (department) {
+    query = query.or(`department.eq.${department},department.is.null`);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function createTaskTemplateClient(template: {
+  title: string;
+  description?: string;
+  estimated_hours?: number;
+  department?: string;
+  created_by: string;
+}) {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('task_templates')
+    .insert(template)
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
+
+// Assign task from template to employee
+export async function assignTaskFromTemplateClient(
+  templateId: string,
+  assignedTo: string,
+  assignedBy: string,
+  dueDate?: string,
+  taskGroupId?: string
+) {
+  const supabase = createClient();
+  
+  // First get the template
+  const { data: template, error: templateError } = await supabase
+    .from('task_templates')
+    .select('*')
+    .eq('id', templateId)
+    .single();
+    
+  if (templateError) throw templateError;
+  
+  // Create task from template
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert({
+      title: template.title,
+      description: template.description,
+      estimated_hours: template.estimated_hours,
+      assigned_to: assignedTo,
+      assigned_by: assignedBy,
+      template_id: templateId,
+      task_group_id: taskGroupId,
+      due_date: dueDate,
+      status: 'pending'
+    })
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
+
+// Create and assign custom task
+export async function createAndAssignTaskClient(task: {
+  title: string;
+  description?: string;
+  estimated_hours?: number;
+  assigned_to: string;
+  assigned_by: string;
+  due_date?: string;
+  task_group_id?: string;
+}) {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert({
+      ...task,
+      status: 'pending'
+    })
+    .select()
+    .single();
+    
+  if (error) throw error;
+  return data;
+}
