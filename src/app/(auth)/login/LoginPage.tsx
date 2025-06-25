@@ -25,6 +25,7 @@ export function LoginForm() {
             alert('An unexpected error occurred. Please try again.');
         } finally {
             setIsLoading(false);
+            router.push("/dashboard")
         }
     }
 

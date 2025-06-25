@@ -48,12 +48,15 @@ export default function Header({ user }: HeaderProps) {
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
             <Link
-              href="/test"
+              href={user ? "/dashboard" : "/login"}
               className={`text-sm transition-color ${
-                pathname === "/test" ? "opacity-75" : "opacity-50"
+                (user && pathname === "/dashboard") ||
+                (!user && pathname === "/login")
+                  ? "opacity-75"
+                  : "opacity-50"
               }`}
             >
-              Start Here
+              My Dashboard
             </Link>
           </nav>
         </div>

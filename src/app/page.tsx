@@ -1,9 +1,34 @@
+"use client"; 
+
 import Image from "next/image";
 import { AnimatedGridPattern } from "../components/ui/grid-pattern";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
+import React, { useEffect, useState } from "react";
 
 export default function Home() {
+  const { width, height } = useWindowSize();
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    if (width > 0 && height > 0) {
+      setShowConfetti(true);
+    }
+  }, [width, height]);
+
+
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-background overflow-hidden">
+      {/* Confetti overlay - covers the whole viewport */}
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={200}
+          recycle={false}
+          className="fixed inset-0 z-[100] pointer-events-none"
+        />
+      )}
       {/* Animated Microsoft grid background */}
       <AnimatedGridPattern
         numSquares={60}
