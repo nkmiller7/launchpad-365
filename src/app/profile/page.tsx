@@ -1,6 +1,6 @@
 import { createClient } from "../../db/sbserver";
 import { redirect } from "next/navigation";
-import ProfileComponent from "./ProfileComponent_new";
+import ProfileComponent from "./ProfileComponent";
 
 export default async function ProfilePage() {
   const supabase = await createClient();

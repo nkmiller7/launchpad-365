@@ -6,29 +6,27 @@ export interface Database {
           id: string;
           email: string;
           full_name: string | null;
-          role: 'manager' | 'employee';
+          role: 'manager' | 'employee' | 'individual contributor' | 'hr';
           department: string | null;
           hire_date: string | null;
           manager_id: string | null;
           created_at: string;
           updated_at: string;
-        };
-        Insert: {
+        };        Insert: {
           id: string;
           email: string;
           full_name?: string | null;
-          role?: 'manager' | 'employee';
+          role?: 'manager' | 'employee' | 'individual contributor' | 'hr';
           department?: string | null;
           hire_date?: string | null;
           manager_id?: string | null;
           created_at?: string;
           updated_at?: string;
-        };
-        Update: {
+        };        Update: {
           id?: string;
           email?: string;
           full_name?: string | null;
-          role?: 'manager' | 'employee';
+          role?: 'manager' | 'employee' | 'individual contributor' | 'hr';
           department?: string | null;
           hire_date?: string | null;
           manager_id?: string | null;
