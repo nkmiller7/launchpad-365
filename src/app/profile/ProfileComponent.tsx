@@ -69,29 +69,32 @@ export default function ProfileComponent({ user, profile }: ProfileComponentProp
       day: "numeric",
     });
   };
-
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
-        <p className="text-gray-600">View and manage your profile information</p>
-      </div>
-
-      <div className="flex justify-center">
-        <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+            <p className="mt-1 max-w-2xl text-sm text-gray-700">
+              View and manage your profile information
+            </p>
+          </div>
+        </div>        {/* Personal Information Card */}
+        <div className="bg-white shadow rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
               <UserCircle className="h-5 w-5" />
               Personal Information
-            </CardTitle>
-            <CardDescription>Your basic profile details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </h2>
+            <p className="mt-1 text-sm text-gray-700">Your basic profile details</p>
+          </div>
+          <div className="px-4 py-5 space-y-4">
             <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-gray-500" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Email</p>
-                <p className="text-sm text-gray-600">{user.email || "Not provided"}</p>
+                <p className="text-sm text-gray-700">{user.email || "Not provided"}</p>
               </div>
             </div>
 
@@ -99,7 +102,7 @@ export default function ProfileComponent({ user, profile }: ProfileComponentProp
               <UserCircle className="h-4 w-4 text-gray-500" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Full Name</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   {profile?.full_name || "Not provided"}
                 </p>
               </div>
@@ -109,7 +112,7 @@ export default function ProfileComponent({ user, profile }: ProfileComponentProp
               <Building className="h-4 w-4 text-gray-500" />
               <div>
                 <p className="text-sm font-medium text-gray-900">Department</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   {profile?.department || "Not assigned"}
                 </p>
               </div>
@@ -123,36 +126,34 @@ export default function ProfileComponent({ user, profile }: ProfileComponentProp
                   {profile?.role || "employee"}
                 </Badge>
               </div>
-            </div>          </CardContent>
-        </Card>
-      </div>
-
-      {/* Account Timeline */}
-      <div className="flex justify-center mt-6">
-        <Card className="w-full max-w-2xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            </div>
+          </div>
+        </div>        {/* Account Timeline Card */}
+        <div className="bg-white shadow rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Account Timeline
-            </CardTitle>
-            <CardDescription>Important dates and milestones</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </h2>
+            <p className="mt-1 text-sm text-gray-700">Important dates and milestones</p>
+          </div>
+          <div className="px-4 py-5 space-y-4">
             <div>
               <p className="text-sm font-medium text-gray-900">Account Created</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {formatDate(profile?.created_at || user.created_at)}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-900">Last Updated</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-700">
                 {formatDate(profile?.updated_at || null)}
               </p>
-            </div>            {profile?.role === "individual contributor" && profile?.manager_id && (
+            </div>
+            {profile?.role === "individual contributor" && profile?.manager_id && (
               <div>
                 <p className="text-sm font-medium text-gray-900">Reports To</p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-700">
                   {isLoadingManager 
                     ? "Loading..." 
                     : managerProfile?.full_name || "Manager information not available"
@@ -160,24 +161,23 @@ export default function ProfileComponent({ user, profile }: ProfileComponentProp
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {!profile && (
-        <div className="flex justify-center mt-6">
-          <div className="w-full max-w-2xl p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          </div>
+        </div>        {/* Profile Setup Warning */}
+        {!profile && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-yellow-800">
               <strong>Profile Setup Required:</strong> Your profile information is incomplete.
               Please contact your manager to complete your profile setup.
             </p>
           </div>
+        )}
+
+        {/* Back to Dashboard Button */}
+        <div className="text-center">
+          <Button variant="outline" asChild className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50">
+            <a href="/dashboard">Back to Dashboard</a>
+          </Button>
         </div>
-      )}
-        <div className="mt-8 text-center">
-        <Button variant="outline" asChild>
-          <a href="/dashboard">Back to Dashboard</a>
-        </Button>
       </div>
     </div>
   );

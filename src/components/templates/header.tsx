@@ -68,17 +68,32 @@ export default function Header({ user }: HeaderProps) {
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <UserCircle />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
+              </DropdownMenuTrigger>              <DropdownMenuContent
                 align="end"
-                className="w-56 !bg-[var(--accent)] border-0"
+                className="w-64 bg-white border border-gray-200 shadow-lg rounded-lg p-2"
               >
-                <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user.email}
+                  </p>
+                  <p className="text-xs text-gray-500">Signed in</p>
+                </div>
+                <DropdownMenuItem asChild className="mt-1">
+                  <Link 
+                    className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors cursor-pointer w-full" 
+                    href="/profile"
+                  >
+                    <UserCircle className="h-4 w-4 mr-2 text-gray-500" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem 
+                  className="flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md transition-colors cursor-pointer mt-1" 
+                  onClick={handleSignOut}
+                >
+                  <svg className="h-4 w-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>

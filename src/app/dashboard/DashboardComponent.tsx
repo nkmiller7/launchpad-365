@@ -199,9 +199,30 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-lg text-gray-600">Loading your tasks...</div>
-          </div>
-        ) : (
+          </div>        ) : (
           <div className="max-w-4xl">
+            {/* Manager Panel Link */}
+            {profile?.role === 'manager' && (
+              <div className="mb-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-medium text-blue-900">Manager Tools</h3>
+                      <p className="text-sm text-blue-700">
+                        Access your team management dashboard to view and manage your employees.
+                      </p>
+                    </div>
+                    <Button asChild>
+                      <a href="/admin" className='text-blue-900'>
+                        <Users className="text-blue-900 h-4 w-4 mr-2" />
+                        Manage Team
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <h1 className="text-2xl font-bold text-gray-900 mb-8">
               {selectedFilter === 'next-7-days' ? 'Upcoming Tasks' : 
                sidebarItems.find(item => item.id === selectedFilter)?.label || 'Tasks'}
@@ -249,29 +270,7 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
                     </div>
                   </div>
                 ))
-              )}
-            </div>
-          </div>
-        )}
-        {/* Manager Panel Link */}
-        {profile?.role === 'manager' && (
-          <div className="mt-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-blue-900">Manager Tools</h3>
-                  <p className="text-sm text-blue-700">
-                    Access your team management dashboard to view and manage your employees.
-                  </p>
-                </div>
-                <Button asChild>
-                  <a href="/admin">
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Team
-                  </a>
-                </Button>
-              </div>
-            </div>
+              )}            </div>
           </div>
         )}
       </div>
