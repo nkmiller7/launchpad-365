@@ -6,6 +6,7 @@ import { Database } from '../../types/database';
 import { Button } from '../../components/ui/button';
 import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle } from 'lucide-react';
 import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
+import TaskDetailModal from '../../components/TaskDetailModal';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
@@ -23,12 +24,13 @@ interface TaskItem extends TaskRow {
   } | null;
 }
 
-export default function DashboardComponent({ user, profile }: DashboardComponentProps) {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
+export default function DashboardComponent({ user, profile }: DashboardComponentProps) {  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [allTasks, setAllTasks] = useState<TaskItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('next-7-days');
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   // Load tasks from Supabase
   useEffect(() => {
@@ -114,9 +116,35 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
         prevTasks.map(t => 
           t.id === taskId ? { ...t, status: newStatus } : t
         )
-      );
-    } catch (error) {
+      );    } catch (error) {
       console.error('Error updating task status:', error);
+    }
+  };
+
+  const handleTaskClick = (task: TaskItem) => {
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  const handleCloseTaskModal = () => {
+    setIsTaskModalOpen(false);
+    setSelectedTask(null);
+  };
+  const handleTaskStatusChange = async (taskId: string, completed: boolean) => {
+    await toggleTaskComplete(taskId);
+    
+    // If task is marked as completed, close the modal
+    if (completed) {
+      setIsTaskModalOpen(false);
+      setSelectedTask(null);
+    } else {
+      // Update the selected task if it's still open and not completed
+      if (selectedTask && selectedTask.id === taskId) {
+        const updatedTask = allTasks.find(t => t.id === taskId);
+        if (updatedTask) {
+          setSelectedTask(updatedTask);
+        }
+      }
     }
   };
 
@@ -233,17 +261,22 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
                 <div className="text-center py-8 text-gray-500">
                   No tasks found for this filter.
                 </div>
-              ) : (
-                tasks.map((task) => (
+              ) : (                tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => handleTaskClick(task)}
                   >
-                    <div className="flex items-center space-x-4">
-                      <input
+                    <div className="flex items-center space-x-4">                      <input
                         type="checkbox"
                         checked={task.status === 'completed'}
-                        onChange={() => toggleTaskComplete(task.id)}
+                        onChange={(e) => {
+                          e.stopPropagation(); // Prevent modal from opening when clicking checkbox
+                          toggleTaskComplete(task.id);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Also prevent on click event
+                        }}
                         className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <div>
@@ -253,7 +286,12 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
                           {task.title}
                         </h3>
                         {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {task.description.length > 100 ? 
+                              `${task.description.substring(0, 100)}...` : 
+                              task.description
+                            }
+                          </p>
                         )}
                       </div>
                     </div>
@@ -338,10 +376,17 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-sm">
                 Start Conversation
               </Button>
-            </div>
-          </div>
+            </div>          </div>
         </div>
       )}
+
+      {/* Task Detail Modal */}
+      <TaskDetailModal
+        task={selectedTask}
+        isOpen={isTaskModalOpen}
+        onClose={handleCloseTaskModal}
+        onStatusChange={handleTaskStatusChange}
+      />
     </div>
   );
 }
