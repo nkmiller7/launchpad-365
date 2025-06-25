@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {Input} from "../../../components/ui/input";
 import {Button} from "../../../components/ui/button";
@@ -6,10 +6,13 @@ import {Label} from "../../../components/ui/label";
 import React, {FormEvent, useState} from "react";
 import {loginUser} from "../login/actions";
 import {useRouter} from "next/navigation";
+import {createClient} from "../../../db/sbclient";
 
 export function LoginForm() {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);    async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    const [isLoading, setIsLoading] = useState(false);
+    
+    async function onSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setIsLoading(true);
 
@@ -20,12 +23,36 @@ export function LoginForm() {
         try {
             // First try to log in
             const {error} = await loginUser(email, password);
+            
+            if (!error) {
+                // Get user profile to check role
+                const supabase = createClient();
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (user && !authError) {
+                    const { data: profile, error: profileError } = await supabase
+                        .from("profiles")
+                        .select("role")
+                        .eq("id", user.id)
+                        .single();
+                    
+                    // Redirect based on role
+                    if (profile && profile.role === "manager") {
+                        router.push("/admin");
+                    } else {
+                        router.push("/dashboard");
+                    }
+                } else {
+                    router.push("/dashboard");
+                }
+            } else {
+                alert('Login failed. Please check your credentials.');
+            }
         } catch (error) {
             console.error('Unexpected login error:', error);
             alert('An unexpected error occurred. Please try again.');
         } finally {
             setIsLoading(false);
-            router.push("/dashboard")
         }
     }
 

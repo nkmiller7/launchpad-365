@@ -1,6 +1,10 @@
 import { createClient } from "../../db/sbserver";
 import { redirect } from "next/navigation";
+<<<<<<< HEAD
 import DashboardComponent from "./DashboardComponent_simple";
+=======
+import DashboardComponent from "./DashboardComponent";
+>>>>>>> feca1672c04b20c4a6483fc571677de1e9f1713a
 
 export default async function DashboardPage() {
   const supabase = await createClient();
