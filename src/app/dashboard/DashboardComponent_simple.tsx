@@ -1,15 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
-import { Database } from '../../types/database';
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
-
-interface DashboardComponentProps {
-  user: User;
-  profile: Profile | null;
-}
 
 // Simplified types for demo
 interface TaskItem {
@@ -21,9 +12,15 @@ interface TaskItem {
   assigned_by?: string;
 }
 
-export default function DashboardComponent({ user, profile }: DashboardComponentProps) {
+interface DashboardProps {
+  user: any;
+  profile: any;
+}
+
+export default function DashboardComponent({ user, profile }: DashboardProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('next-7-days');
+  const [loading, setLoading] = useState(false);
 
   // Sample data for demo
   const sampleTasks: TaskItem[] = [
@@ -70,6 +67,7 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
   ];
 
   useEffect(() => {
+    // Filter tasks based on selected filter
     setTasks(getFilteredTasks());
   }, [selectedFilter]);
 
@@ -106,7 +104,7 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
     setTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === taskId 
-          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' as const }
+          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
           : task
       )
     );
@@ -236,10 +234,6 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
             )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
       </div>
     </div>
   );
