@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { Bot, X, UserCircle, Briefcase, Calendar, Building } from 'lucide-react';
 
 // Simplified types for demo
 interface TaskItem {
@@ -20,6 +21,7 @@ interface DashboardProps {
 export default function DashboardComponent({ user, profile }: DashboardProps) {
   const [selectedFilter, setSelectedFilter] = useState('next-7-days');
   const [loading, setLoading] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
   // Single source of truth for all tasks
   const [allTasks, setAllTasks] = useState<TaskItem[]>([
@@ -257,9 +259,90 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
                   </div>
                 </div>
               ))
-            )}
-          </div>
+            )}          </div>
         </div>
+
+        {/* AI Assistant Floating Button */}
+        <div 
+          className="fixed bottom-6 right-6 z-[9999]"
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            right: '24px',
+            zIndex: 9999,
+            pointerEvents: 'auto'
+          }}
+        >
+          <button 
+            onClick={() => {
+              console.log("AI Assistant button clicked!");
+              setIsAIAssistantOpen(!isAIAssistantOpen);
+            }}
+            className="rounded-full w-16 h-16 shadow-2xl transition-all duration-200 hover:scale-105 border-4 border-white flex items-center justify-center"
+            style={{
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              minWidth: '64px',
+              minHeight: '64px'
+            }}
+          >
+            <Bot className="h-8 w-8" />
+          </button>
+        </div>
+
+        {/* AI Assistant Popup */}
+        {isAIAssistantOpen && (
+          <div 
+            className="fixed bottom-24 right-6 z-[9998] w-80 bg-white rounded-lg shadow-2xl border-2 border-gray-200"
+            style={{ 
+              position: 'fixed',
+              bottom: '112px',
+              right: '24px',
+              zIndex: 9998
+            }}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-900">AI Assistant</h3>
+              </div>
+              <button 
+                onClick={() => setIsAIAssistantOpen(false)}
+                className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Hi! I'm here to help you with your onboarding tasks and answer any questions. What can I assist you with today?
+              </p>
+              <div className="space-y-2">
+                <button className="w-full flex items-center justify-start p-2 text-sm border border-gray-200 rounded hover:bg-gray-50">
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  Task Help & Guidance
+                </button>
+                <button className="w-full flex items-center justify-start p-2 text-sm border border-gray-200 rounded hover:bg-gray-50">
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Company Resources
+                </button>
+                <button className="w-full flex items-center justify-start p-2 text-sm border border-gray-200 rounded hover:bg-gray-50">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Schedule Questions
+                </button>
+                <button className="w-full flex items-center justify-start p-2 text-sm border border-gray-200 rounded hover:bg-gray-50">
+                  <Building className="h-4 w-4 mr-2" />
+                  General Support
+                </button>
+              </div>
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded">
+                  Start Conversation
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
