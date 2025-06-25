@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, startTransition } from 'react';
 
 // Simplified types for demo
 interface TaskItem {
@@ -18,12 +18,11 @@ interface DashboardProps {
 }
 
 export default function DashboardComponent({ user, profile }: DashboardProps) {
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [selectedFilter, setSelectedFilter] = useState('next-7-days');
   const [loading, setLoading] = useState(false);
 
-  // Sample data for demo
-  const sampleTasks: TaskItem[] = [
+  // Single source of truth for all tasks
+  const [allTasks, setAllTasks] = useState<TaskItem[]>([
     {
       id: '1',
       title: 'Security 101',
@@ -64,54 +63,58 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
       status: 'in_progress',
       assigned_by: 'Mike IT'
     }
-  ];
+  ]);
 
-  useEffect(() => {
-    // Filter tasks based on selected filter
-    setTasks(getFilteredTasks());
-  }, [selectedFilter]);
-
-  const getFilteredTasks = (): TaskItem[] => {
+  // Filtered tasks based on selected filter - using useMemo for better performance
+  const tasks = useMemo(() => {
     const today = new Date();
     const sevenDaysFromNow = new Date(today);
     sevenDaysFromNow.setDate(today.getDate() + 7);
 
     switch (selectedFilter) {
       case 'next-7-days':
-        return sampleTasks.filter(task => {
+        return allTasks.filter((task: TaskItem) => {
           const dueDate = new Date(task.due_date);
           return dueDate >= today && dueDate <= sevenDaysFromNow && task.status !== 'completed';
         });
       case 'priority-tasks':
         const threeDaysFromNow = new Date(today);
         threeDaysFromNow.setDate(today.getDate() + 3);
-        return sampleTasks.filter(task => {
+        return allTasks.filter((task: TaskItem) => {
           const dueDate = new Date(task.due_date);
           return dueDate <= threeDaysFromNow && task.status !== 'completed';
         });
       case 'get-started':
-        return sampleTasks.filter(task => task.status === 'pending');
+        return allTasks.filter((task: TaskItem) => task.status === 'pending');
       case 'microsoft-tasks':
-        return sampleTasks.filter(task => task.title.toLowerCase().includes('microsoft'));
+        return allTasks.filter((task: TaskItem) => task.title.toLowerCase().includes('microsoft'));
       case 'completed-tasks':
-        return sampleTasks.filter(task => task.status === 'completed');
+        return allTasks.filter((task: TaskItem) => task.status === 'completed');
       default:
-        return sampleTasks;
+        return allTasks;
     }
-  };
+  }, [selectedFilter, allTasks]);
 
-  const toggleTaskComplete = (taskId: string) => {
-    setTasks(prevTasks => 
+  const toggleTaskComplete = useCallback((taskId: string) => {
+    // Update the task in allTasks state
+    setAllTasks(prevTasks => 
       prevTasks.map(task => 
         task.id === taskId 
-          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' }
+          ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' as const }
           : task
       )
     );
-  };
+  }, []);
 
-  const completedTasksCount = sampleTasks.filter(task => task.status === 'completed').length;
-  const totalTasks = sampleTasks.length;
+  const handleFilterChange = useCallback((filterId: string) => {
+    startTransition(() => {
+      setSelectedFilter(filterId);
+    });
+  }, []);
+
+  // Calculate progress from allTasks state
+  const completedTasksCount = allTasks.filter((task: TaskItem) => task.status === 'completed').length;
+  const totalTasks = allTasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
 
   const formatDate = (dateString: string) => {
@@ -134,47 +137,50 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
       {/* Sidebar */}
-      <div className="w-80 bg-white shadow-lg">
+      <div className="w-80 bg-white shadow-xl border-r border-gray-100">
         <div className="p-6">
           {/* Progress Section */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">My Progress</h2>
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">👤</span>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-800">My Progress</h2>
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-white text-lg">👤</span>
               </div>
             </div>
             
             {/* Progress Bar */}
-            <div className="mb-2">
-              <div className="w-full bg-gray-200 rounded-full h-4">
+            <div className="mb-3">
+              <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
                 <div 
-                  className="bg-gray-400 h-4 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500 shadow-sm"
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
             </div>
-            <div className="text-right text-lg font-semibold text-gray-700">
+            <div className="text-right text-xl font-bold text-gray-800">
               {progressPercentage}%
+            </div>
+            <div className="text-right text-sm text-gray-500 mt-1">
+              {completedTasksCount} of {totalTasks} tasks completed
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-2">
+          <nav className="space-y-1">
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setSelectedFilter(item.id)}
-                className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
+                onClick={() => handleFilterChange(item.id)}
+                className={`w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-75 ${
                   selectedFilter === item.id
-                    ? 'bg-gray-100 text-gray-900 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 font-semibold shadow-sm border border-blue-200'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                 }`}
               >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.label}
+                <span className="mr-3 text-xl">{item.icon}</span>
+                <span className="font-medium">{item.label}</span>
               </button>
             ))}
           </nav>
@@ -183,49 +189,75 @@ export default function DashboardComponent({ user, profile }: DashboardProps) {
 
       {/* Main Content */}
       <div className="flex-1 p-8">
-        <div className="max-w-4xl">
-          <h1 className="text-2xl font-bold text-gray-900 mb-8">
-            {selectedFilter === 'next-7-days' ? 'Upcoming Tasks' : 
-             sidebarItems.find(item => item.id === selectedFilter)?.label || 'Tasks'}
-          </h1>
+        <div className="max-w-5xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              {selectedFilter === 'next-7-days' ? 'Upcoming Tasks' : 
+               sidebarItems.find(item => item.id === selectedFilter)?.label || 'Tasks'}
+            </h1>
+            <p className="text-gray-600">
+              {selectedFilter === 'next-7-days' 
+                ? 'Tasks due in the next 7 days' 
+                : `Showing ${tasks.length} task${tasks.length !== 1 ? 's' : ''}`}
+            </p>
+          </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tasks.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                No tasks found for this filter.
+              <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div className="text-6xl mb-4">📋</div>
+                <div className="text-gray-500 text-lg">No tasks found for this filter.</div>
+                <div className="text-gray-400 text-sm mt-2">Try selecting a different filter from the sidebar.</div>
               </div>
             ) : (
               tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow"
+                  className="group flex items-center justify-between p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-blue-200 transition-all duration-200"
                 >
                   <div className="flex items-center space-x-4">
-                    <input
-                      type="checkbox"
-                      checked={task.status === 'completed'}
-                      onChange={() => toggleTaskComplete(task.id)}
-                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div>
-                      <h3 className={`font-medium ${
-                        task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
-                      }`}>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={task.status === 'completed'}
+                        onChange={() => toggleTaskComplete(task.id)}
+                        className="w-6 h-6 text-blue-600 border-2 border-gray-300 rounded-lg focus:ring-blue-500 focus:ring-2 transition-all"
+                      />
+                      {task.status === 'completed' && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <span className="text-blue-600 text-sm font-bold">✓</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className={`font-semibold text-lg ${
+                        task.status === 'completed' ? 'line-through text-gray-400' : 'text-gray-800 group-hover:text-blue-700'
+                      } transition-colors`}>
                         {task.title}
                       </h3>
                       {task.description && (
-                        <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                        <p className={`text-sm mt-1 ${
+                          task.status === 'completed' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          {task.description}
+                        </p>
                       )}
                     </div>
                   </div>
                   
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-700">
+                  <div className="text-right flex flex-col items-end">
+                    <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
+                      new Date(task.due_date) < new Date() && task.status !== 'completed'
+                        ? 'bg-red-100 text-red-700'
+                        : new Date(task.due_date).getTime() - new Date().getTime() < 3 * 24 * 60 * 60 * 1000 && task.status !== 'completed'
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
                       {formatDate(task.due_date)}
                     </div>
                     {task.assigned_by && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Assigned by {task.assigned_by}
+                      <div className="text-xs text-gray-500 mt-2 bg-gray-50 px-2 py-1 rounded-full">
+                        👤 {task.assigned_by}
                       </div>
                     )}
                   </div>
