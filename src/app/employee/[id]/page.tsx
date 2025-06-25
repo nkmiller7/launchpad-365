@@ -9,7 +9,6 @@ interface EmployeePageProps {
 }
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
-  const { id } = await params;
   const supabase = await createClient();
   const { id } = await params;
 
