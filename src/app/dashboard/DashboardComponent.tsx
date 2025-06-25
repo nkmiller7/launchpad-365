@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
 import { Button } from '../../components/ui/button';
-import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building } from 'lucide-react';
+import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle } from 'lucide-react';
 import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -135,62 +135,66 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
   };
 
   const sidebarItems = [
-    { id: 'next-7-days', label: 'Next 7 Days', icon: '📅' },
-    { id: 'all-tasks', label: 'All Tasks', icon: '🏠' },
-    { id: 'priority-tasks', label: 'Priority Tasks', icon: '❗' },
-    { id: 'get-started', label: 'Get Started', icon: '⚫' },
-    { id: 'microsoft-tasks', label: 'Microsoft Tasks', icon: '⚫' },
-    { id: 'completed-tasks', label: 'Completed Tasks', icon: '✅' },
-    { id: 'deleted', label: 'Deleted', icon: '🗑️' },
+    { id: 'next-7-days', label: 'Next 7 Days', icon: <Calendar className="h-5 w-5" /> },
+    { id: 'all-tasks', label: 'All Tasks', icon: <ClipboardList className="h-5 w-5" /> },
+    { id: 'priority-tasks', label: 'Priority Tasks', icon: <Flame className="h-5 w-5 text-orange-500" /> },
+    { id: 'get-started', label: 'Get Started', icon: <Rocket className="h-5 w-5 text-blue-500" /> },
+    { id: 'microsoft-tasks', label: 'Microsoft Tasks', icon: <Briefcase className="h-5 w-5 text-blue-700" /> },
+    { id: 'completed-tasks', label: 'Completed Tasks', icon: <CheckCircle className="h-5 w-5 text-green-600" /> },
   ];
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
-      <div className="w-80 bg-white shadow-lg">
+      <div className="w-80 bg-white shadow-lg border-r border-gray-200/50">
         <div className="p-6">
           {/* Progress Section */}
-          <div className="mb-8">
+          <div className="mb-8 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">My Progress</h2>
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm">👤</span>
+              <h2 className="text-lg font-semibold text-gray-900">Onboarding Progress</h2>
+              <div className="relative">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shadow">
+                  <UserCircle className="h-7 w-7 text-blue-700" />
+                </div>
               </div>
             </div>
-            
-            {/* Progress Bar */}
-            <div className="mb-2">
-              <div className="w-full bg-gray-200 rounded-full h-4">
-                <div 
-                  className="bg-gray-400 h-4 rounded-full transition-all duration-300"
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
+            <div className="mb-3">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs text-gray-500">Completion</span>
+                <span className="text-xs font-semibold text-blue-700">{progressPercentage}%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3">
+                <div className="bg-blue-600 h-3 rounded-full transition-all duration-700" style={{ width: `${progressPercentage}%` }}></div>
               </div>
             </div>
-            <div className="text-right text-lg font-semibold text-gray-700">
-              {progressPercentage}%
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>{completedTasksCount} completed</span>
+              <span>{totalTasks - completedTasksCount} remaining</span>
             </div>
           </div>
-
           {/* Navigation */}
           <nav className="space-y-2">
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setSelectedFilter(item.id)}
-                className={`w-full flex items-center px-3 py-3 text-left rounded-lg transition-colors ${
+                className={`group w-full flex items-center px-4 py-3 text-left rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200 bg-white hover:bg-blue-50 ${
                   selectedFilter === item.id
-                    ? 'bg-gray-100 text-gray-900 font-medium'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'border-blue-600 bg-blue-50 text-blue-900 font-semibold shadow-sm'
+                    : 'text-gray-700'
                 }`}
               >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.label}
+                <span className="mr-3">{item.icon}</span>
+                <span className="font-medium text-base">{item.label}</span>
+                {selectedFilter === item.id && (
+                  <span className="ml-auto text-xs text-blue-700 font-semibold">{tasks.length} task{tasks.length !== 1 ? 's' : ''}</span>
+                )}
               </button>
             ))}
           </nav>
         </div>
-      </div>      {/* Main Content */}
+      </div>
+      {/* Main Content */}
       <div className="flex-1 p-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -243,8 +247,30 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
                         </div>
                       )}
                     </div>
-                  </div>                ))
+                  </div>
+                ))
               )}
+            </div>
+          </div>
+        )}
+        {/* Manager Panel Link */}
+        {profile?.role === 'manager' && (
+          <div className="mt-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-blue-900">Manager Tools</h3>
+                  <p className="text-sm text-blue-700">
+                    Access your team management dashboard to view and manage your employees.
+                  </p>
+                </div>
+                <Button asChild>
+                  <a href="/admin">
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Team
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
         )}
@@ -260,20 +286,13 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
           zIndex: 9999,
           pointerEvents: 'auto'
         }}
-      >        <Button 
-          onClick={() => {
-            console.log("AI Assistant button clicked!");
-            setIsAIAssistantOpen(!isAIAssistantOpen);
-          }}
-          className="rounded-full w-16 h-16 shadow-2xl transition-all duration-200 hover:scale-105 border-4 border-white"
-          style={{
-            backgroundColor: '#dc2626',
-            color: 'white',
-            minWidth: '64px',
-            minHeight: '64px'
-          }}
+      >
+        <Button 
+          onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
+          className="rounded-full w-14 h-14 shadow-lg transition-all duration-200 hover:scale-105 border-2 border-blue-600 flex items-center justify-center bg-white text-blue-700"
+          aria-label="Open AI Assistant"
         >
-          <Bot className="h-8 w-8" />
+          <Bot className="h-7 w-7" />
         </Button>
       </div>
 
