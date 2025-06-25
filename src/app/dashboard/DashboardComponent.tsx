@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from "next/navigation"
 import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
 import { Button } from '../../components/ui/button';
-import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle } from 'lucide-react';
+import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle, Check, Copy } from 'lucide-react';
 import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
 import TaskDetailModal from '../../components/TaskDetailModal';
 
@@ -24,18 +25,23 @@ interface TaskItem extends TaskRow {
   } | null;
 }
 
-export default function DashboardComponent({ user, profile }: DashboardComponentProps) {  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [allTasks, setAllTasks] = useState<TaskItem[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState('next-7-days');
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+export default function DashboardComponent({ user, profile }: DashboardComponentProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [tasks, setTasks] = useState<TaskItem[]>([])
+  const [allTasks, setAllTasks] = useState<TaskItem[]>([])
+  const [selectedFilter, setSelectedFilter] = useState("next-7-days")
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
 
   // Load tasks from Supabase
   useEffect(() => {
     loadUserTasks();
   }, [user.id]);
+
   const loadUserTasks = async () => {
     try {
       setLoading(true);
@@ -48,9 +54,22 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
     }
   };
 
+  // Handle URL parameters for task selection
+  useEffect(() => {
+    const taskId = searchParams.get("task")
+    if (taskId && allTasks.length > 0) {
+      const task = allTasks.find((t) => t.id === taskId)
+      if (task) {
+        setSelectedTask(task)
+        setIsTaskModalOpen(true)
+      }
+    }
+  }, [searchParams, allTasks])
+
   useEffect(() => {
     setTasks(getFilteredTasks());
   }, [selectedFilter, allTasks]);
+
   const getFilteredTasks = (): TaskItem[] => {
     const today = new Date();
     const sevenDaysFromNow = new Date(today);
@@ -122,31 +141,69 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
   };
 
   const handleTaskClick = (task: TaskItem) => {
-    setSelectedTask(task);
-    setIsTaskModalOpen(true);
-  };
+    // Update URL to include task ID
+    const url = new URL(window.location.href)
+    url.searchParams.set("task", task.id)
+    router.push(url.pathname + url.search, { scroll: false })
+
+    setSelectedTask(task)
+    setIsTaskModalOpen(true)
+  }
 
   const handleCloseTaskModal = () => {
-    setIsTaskModalOpen(false);
-    setSelectedTask(null);
-  };
+    // Remove task parameter from URL
+    const url = new URL(window.location.href)
+    url.searchParams.delete("task")
+    router.push(url.pathname + url.search, { scroll: false })
+
+    setIsTaskModalOpen(false)
+    setSelectedTask(null)
+  }
+
   const handleTaskStatusChange = async (taskId: string, completed: boolean) => {
-    await toggleTaskComplete(taskId);
-    
+    await toggleTaskComplete(taskId)
+
     // If task is marked as completed, close the modal
     if (completed) {
-      setIsTaskModalOpen(false);
-      setSelectedTask(null);
+      setIsTaskModalOpen(false)
+      setSelectedTask(null)
+      // Remove task parameter from URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete("task")
+      router.push(url.pathname + url.search, { scroll: false })
     } else {
       // Update the selected task if it's still open and not completed
       if (selectedTask && selectedTask.id === taskId) {
-        const updatedTask = allTasks.find(t => t.id === taskId);
+        const updatedTask = allTasks.find((t) => t.id === taskId)
         if (updatedTask) {
-          setSelectedTask(updatedTask);
+          setSelectedTask(updatedTask)
         }
       }
     }
-  };
+  }
+
+  const copyTaskLink = async (taskId: string) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set("task", taskId)
+    const taskUrl = url.toString()
+
+    try {
+      await navigator.clipboard.writeText(taskUrl)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy link:", err)
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea")
+      textArea.value = taskUrl
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand("copy")
+      document.body.removeChild(textArea)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000)
+    }
+  }
 
   const completedTasksCount = allTasks.filter(task => task.status === 'completed').length;
   const totalTasks = allTasks.length;
@@ -258,57 +315,73 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
 
             <div className="space-y-3">
               {tasks.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No tasks found for this filter.
-                </div>
-              ) : (                tasks.map((task) => (
+                <div className="text-center py-8 text-gray-500">No tasks found for this filter.</div>
+              ) : (
+                tasks.map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer"
+                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer group"
                     onClick={() => handleTaskClick(task)}
                   >
-                    <div className="flex items-center space-x-4">                      <input
+                    <div className="flex items-center space-x-4">
+                      <input
                         type="checkbox"
-                        checked={task.status === 'completed'}
+                        checked={task.status === "completed"}
                         onChange={(e) => {
-                          e.stopPropagation(); // Prevent modal from opening when clicking checkbox
-                          toggleTaskComplete(task.id);
+                          e.stopPropagation() // Prevent modal from opening when clicking checkbox
+                          toggleTaskComplete(task.id)
                         }}
                         onClick={(e) => {
-                          e.stopPropagation(); // Also prevent on click event
+                          e.stopPropagation() // Also prevent on click event
                         }}
                         className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <div>
-                        <h3 className={`font-medium ${
-                          task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
-                        }`}>
+                        <h3
+                          className={`font-medium ${
+                            task.status === "completed" ? "line-through text-gray-500" : "text-gray-900"
+                          }`}
+                        >
                           {task.title}
                         </h3>
                         {task.description && (
                           <p className="text-sm text-gray-600 mt-1">
-                            {task.description.length > 100 ? 
-                              `${task.description.substring(0, 100)}...` : 
-                              task.description
-                            }
+                            {task.description.length > 100
+                              ? `${task.description.substring(0, 100)}...`
+                              : task.description}
                           </p>
                         )}
                       </div>
                     </div>
-                    
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-700">
-                        {formatDate(task.due_date)}
+
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-700">{formatDate(task.due_date)}</div>
+                        {task.assigned_by_profile && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Assigned by {task.assigned_by_profile.full_name || task.assigned_by_profile.email}
+                          </div>
+                        )}
                       </div>
-                      {task.assigned_by_profile && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Assigned by {task.assigned_by_profile.full_name || task.assigned_by_profile.email}
-                        </div>
-                      )}
+
+                      {/* Copy Link Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          copyTaskLink(task.id)
+                        }}
+                        title="Copy task link"
+                      >
+                        {copySuccess ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                      </Button>
                     </div>
                   </div>
                 ))
-              )}            </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -386,6 +459,8 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
         isOpen={isTaskModalOpen}
         onClose={handleCloseTaskModal}
         onStatusChange={handleTaskStatusChange}
+        onCopyLink={selectedTask ? () => copyTaskLink(selectedTask.id) : undefined}
+        copySuccess={copySuccess}
       />
     </div>
   );

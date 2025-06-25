@@ -9,8 +9,8 @@ interface EmployeePageProps {
 }
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
-  const { id } = await params;
   const supabase = await createClient();
+  const { id } = await params;
 
   // Get the current user (manager)
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -23,7 +23,7 @@ export default async function EmployeePage({ params }: EmployeePageProps) {
   const { data: managerProfile, error: managerProfileError } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", user.id)
+    .eq("id", id)
     .single();
 
   if (managerProfileError || !managerProfile || managerProfile.role !== "manager") {

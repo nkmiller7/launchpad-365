@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Calendar, Clock, User, FileText, AlertCircle } from 'lucide-react';
+import { X, Calendar, User, Copy, Check, AlertCircle, FileText, Clock } from "lucide-react"
 import { Database } from '../types/database';
 
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
@@ -18,9 +18,11 @@ interface TaskDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onStatusChange: (taskId: string, completed: boolean) => void;
+  onCopyLink?: () => void
+  copySuccess?: boolean
 }
 
-export default function TaskDetailModal({ task, isOpen, onClose, onStatusChange }: TaskDetailModalProps) {
+export default function TaskDetailModal({ task, isOpen, onClose, onStatusChange, onCopyLink, copySuccess }: TaskDetailModalProps) {
   if (!isOpen || !task) return null;
 
   const formatDate = (dateString: string | null) => {
@@ -77,12 +79,29 @@ export default function TaskDetailModal({ task, isOpen, onClose, onStatusChange 
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Task Details</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X className="h-6 w-6" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {onCopyLink && (
+              <button
+                onClick={onCopyLink}
+                className="flex items-center space-x-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                {copySuccess ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
+            )}
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
