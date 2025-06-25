@@ -183,10 +183,10 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
           </div>
         </div>        {/* Quick Actions */}
         <div className="mt-6 flex gap-4 justify-center">
-          <Button variant="outline" asChild className="text-gray-700">
+          <Button variant="outline" className="text-black" asChild>
             <a href="/profile">My Profile</a>
           </Button>
-          <Button variant="outline" asChild className="text-gray-700">
+          <Button variant="outline" className="text-black" asChild>
             <a href="/dashboard">My Dashboard</a>
           </Button>
         </div>
