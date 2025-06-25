@@ -8,7 +8,7 @@ CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users(id) PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     full_name TEXT,
-    role TEXT CHECK (role IN ('manager', 'employee')) NOT NULL DEFAULT 'employee',
+    role TEXT CHECK (role IN ('manager', 'employee', 'individual contributor', 'hr')) NOT NULL DEFAULT 'employee',
     department TEXT,
     hire_date DATE,
     manager_id UUID REFERENCES public.profiles(id),

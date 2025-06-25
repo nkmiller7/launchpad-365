@@ -9,6 +9,11 @@ CREATE TABLE public.profiles (
     full_name text,
     avatar_url text,
     website text,
+    role text check (role in ('manager', 'employee', 'individual contributor', 'hr')) default 'employee',
+    department text,
+    hire_date date,
+    manager_id uuid references public.profiles(id),
+    created_at timestamp with time zone default now(),
 
     CONSTRAINT username_length CHECK (char_length(username) >= 3)
 );

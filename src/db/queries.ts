@@ -18,7 +18,7 @@ export async function createUserProfile(profile: {
   id: string;
   email: string;
   full_name?: string;
-  role?: 'manager' | 'employee';
+  role?: 'manager' | 'employee' | 'individual contributor' | 'hr';
   department?: string;
   hire_date?: string;
   manager_id?: string;
@@ -37,7 +37,7 @@ export async function createUserProfile(profile: {
 
 export async function updateUserProfile(userId: string, updates: {
   full_name?: string;
-  role?: 'manager' | 'employee';
+  role?: 'manager' | 'employee' | 'individual contributor' | 'hr';
   department?: string;
   hire_date?: string;
   manager_id?: string;
