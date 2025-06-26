@@ -5,9 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { User } from '@supabase/supabase-js';
 import { Database } from '../../types/database';
 import { Button } from '../../components/ui/button';
-import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle, Check, Copy } from 'lucide-react';
+import { Users, Calendar, Briefcase, UserCircle, ClipboardList, Flame, Rocket, CheckCircle, Check, Copy } from 'lucide-react';
 import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
 import TaskDetailModal from '../../components/TaskDetailModal';
+import AIAssistant from '../../components/AIAssistant';
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 
@@ -33,7 +34,6 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
   const [tasks, setTasks] = useState<TaskItem[]>([])
   const [allTasks, setAllTasks] = useState<TaskItem[]>([])
   const [selectedFilter, setSelectedFilter] = useState("next-7-days")
-  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
@@ -412,72 +412,8 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
         )}
       </div>
 
-      {/* AI Assistant Floating Button */}
-      <div 
-        className="fixed bottom-6 right-6 z-[9999]"
-        style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 9999,
-          pointerEvents: 'auto'
-        }}
-      >
-        <Button 
-          onClick={() => setIsAIAssistantOpen(!isAIAssistantOpen)}
-          className="rounded-full w-14 h-14 shadow-lg transition-all duration-200 hover:scale-105 border-2 border-blue-600 flex items-center justify-center bg-white text-blue-700"
-          aria-label="Open AI Assistant"
-        >
-          <Bot className="h-7 w-7" />
-        </Button>
-      </div>
-
-      {/* AI Assistant Popup */}
-      {isAIAssistantOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 bg-white rounded-lg shadow-xl border border-gray-200">
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">AI Assistant</h3>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsAIAssistantOpen(false)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="p-4">
-            <p className="text-sm text-gray-600 mb-4">
-              Hi! I'm here to help you with your onboarding tasks and answer any questions. What can I assist you with today?
-            </p>
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-sm">
-                <UserCircle className="h-4 w-4 mr-2" />
-                Task Help & Guidance
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
-                <Briefcase className="h-4 w-4 mr-2" />
-                Company Resources
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Questions
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-sm">
-                <Building className="h-4 w-4 mr-2" />
-                General Support
-              </Button>
-            </div>
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-sm">
-                Start Conversation
-              </Button>
-            </div>          </div>
-        </div>
-      )}
+      {/* AI Assistant Component */}
+      <AIAssistant />
 
       {/* Task Detail Modal */}
       <TaskDetailModal
