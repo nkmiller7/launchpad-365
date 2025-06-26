@@ -219,7 +219,7 @@ export default function AIAssistant({ className }: AIAssistantProps) {
       {isAIAssistantOpen && (
         <div
           ref={popupRef}
-          className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 flex flex-col rounded-b-lg"
+          className="fixed z-50 bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
           style={{
             left: popupPosition.x,
             top: popupPosition.y,
@@ -231,14 +231,10 @@ export default function AIAssistant({ className }: AIAssistantProps) {
             transition: resizing ? 'none' : 'box-shadow 0.2s',
             minWidth: INITIAL_POPUP_WIDTH,
             minHeight: INITIAL_POPUP_HEIGHT,
-            borderTopLeftRadius: 12,
-            borderTopRightRadius: 12,
-            borderBottomLeftRadius: 12,
-            borderBottomRightRadius: 12,
           }}
         >
           <div
-            className="flex items-center justify-between p-4 border-b border-gray-100 select-none bg-gray-50 rounded-t-lg"
+            className="flex items-center justify-between p-4 border-b border-gray-100 select-none bg-gray-50"
             style={{ userSelect: 'none' }}
           >
             <div className="flex items-center gap-2">
@@ -345,35 +341,33 @@ export default function AIAssistant({ className }: AIAssistantProps) {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                     </svg>
                   </Button>
-                  <div className="flex-1 flex items-center">
-                    <div className="relative w-full flex items-center">
-                      <textarea
-                        ref={inputRef}
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        rows={1}
-                        maxLength={1000}
-                        placeholder="Type your message…"
-                        className="w-full resize-none rounded-2xl px-4 py-2 border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 scrollbar-none"
-                        style={{ minHeight: 40, maxHeight: 120, fontSize: `${textSize}em`, overflow: 'auto' }}
-                        disabled={loading}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendMessage(e);
-                          }
-                        }}
-                      />
-                      <button
-                        type="submit"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-blue-600 text-white rounded-full px-3 py-1 shadow hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center"
-                        disabled={loading || !input.trim()}
-                        aria-label="Send message"
-                        style={{ height: 32 }}
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
-                    </div>
+                  <div className="flex-1 flex items-center gap-2">
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      rows={1}
+                      maxLength={1000}
+                      placeholder="Type your message…"
+                      className="w-full resize-none rounded-2xl px-4 py-2 border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all text-gray-900 scrollbar-none"
+                      style={{ minHeight: 40, maxHeight: 120, fontSize: `${textSize}em`, overflow: 'auto' }}
+                      disabled={loading}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      className="bg-blue-600 text-white rounded-full px-3 py-1 shadow hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center"
+                      disabled={loading || !input.trim()}
+                      aria-label="Send message"
+                      style={{ height: 40, minWidth: 40, marginLeft: 4 }}
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
                   </div>
                 </form>
               </>
