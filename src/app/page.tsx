@@ -32,7 +32,7 @@ export default function Home() {
       {/* Animated Microsoft grid background */}
       <AnimatedGridPattern
         numSquares={60}
-        maxOpacity={0.15}
+        maxOpacity={0.45}
         duration={4}
         repeatDelay={1}
         width={28}

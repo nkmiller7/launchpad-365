@@ -23,7 +23,7 @@ export default function Login(){
         <div className="relative flex h-screen w-full items-center justify-center overflow-hidden rounded-lg bg-background p-20">
             <AnimatedGridPattern
                 numSquares={30}
-                maxOpacity={0.1}
+                maxOpacity={0.45}
                 duration={3}
                 repeatDelay={1}
                 className={cn(
