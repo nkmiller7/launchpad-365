@@ -8,6 +8,7 @@ import { Badge } from "../../../components/ui/badge";
 import { ArrowLeft, Mail, Building, UserCircle, Briefcase, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getUserTasksClient, deleteTaskClient } from "../../../db/queries";
+import dynamic from "next/dynamic";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
@@ -24,6 +25,9 @@ interface EmployeeDashboardComponentProps {
   managerProfile: Profile;
   employeeProfile: Profile;
 }
+
+// Dynamically import MarkdownRenderer to avoid SSR issues
+const MarkdownRenderer = dynamic(() => import("../../dashboard/MarkdownRenderer"), { ssr: false });
 
 export default function EmployeeDashboardComponent({ 
   manager, 
@@ -287,7 +291,9 @@ export default function EmployeeDashboardComponent({
                             {task.title}
                           </h4>
                           {task.description && (
-                            <p className="text-sm text-gray-700 mt-1">{task.description}</p>
+                            <div className="text-sm text-gray-700 mt-1">
+                              <MarkdownRenderer content={task.description} />
+                            </div>
                           )}
                         </div>
                       </div>

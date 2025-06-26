@@ -96,12 +96,23 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-white overflow-hidden shadow rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6">
-            <h1 className="text-2xl font-bold text-gray-900">
-              Manager Dashboard
-            </h1>            <p className="mt-1 max-w-2xl text-sm text-gray-700">
-              Welcome back, {profile.full_name || user.email}. Manage your team below.
-            </p>
+          <div className="px-4 py-5 sm:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Manager Dashboard
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm text-gray-700">
+                Welcome back, {profile.full_name || user.email}. Manage your team below.
+              </p>
+            </div>
+            <div className="flex gap-2 mt-2 md:mt-0">
+              <Button variant="outline" className="text-black" asChild>
+                <a href="/profile">My Profile</a>
+              </Button>
+              <Button variant="outline" className="text-black" asChild>
+                <a href="/dashboard">My Dashboard</a>
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -193,14 +204,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
             )}
           </div>
         </div>        {/* Quick Actions */}
-        <div className="mt-6 flex gap-4 justify-center">
-          <Button variant="outline" className="text-black" asChild>
-            <a href="/profile">My Profile</a>
-          </Button>
-          <Button variant="outline" className="text-black" asChild>
-            <a href="/dashboard">My Dashboard</a>
-          </Button>
-        </div>
+        {/* Removed the old location of My Profile and My Dashboard buttons */}
 
         {/* Task Assignment Modal */}
         <TaskAssignmentModal
