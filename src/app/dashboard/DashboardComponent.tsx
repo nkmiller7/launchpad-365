@@ -8,6 +8,8 @@ import { Button } from '../../components/ui/button';
 import { Users, Bot, X, UserCircle, Briefcase, Calendar, Building, ClipboardList, Flame, Rocket, CheckCircle, Check, Copy } from 'lucide-react';
 import { getUserTasksClient, updateTaskStatusClient } from '../../db/queries';
 import TaskDetailModal from '../../components/TaskDetailModal';
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
@@ -36,6 +38,8 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null)
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
+  const { width, height } = useWindowSize();
+  const [showConfetti, setShowConfetti] = useState(false)
 
   // Load tasks from Supabase
   useEffect(() => {
@@ -228,8 +232,30 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
     { id: 'completed-tasks', label: 'Completed Tasks', icon: <CheckCircle className="h-5 w-5 text-green-600" /> },
   ];
 
+  useEffect(() => {
+    // Show confetti when all upcoming tasks are completed
+    if (selectedFilter === 'next-7-days' && tasks.length === 0 && tasks.every(task => task.status === 'completed')) {
+      setShowConfetti(true);
+      // Hide confetti after 4 seconds
+      const timeout = setTimeout(() => setShowConfetti(false), 10000);
+      return () => clearTimeout(timeout);
+    } else {
+      setShowConfetti(false);
+    }
+  }, [tasks, selectedFilter]);
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
+      {/* Confetti overlay - covers the whole viewport */}
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={200}
+          recycle={false}
+          className="fixed inset-0 z-[100] pointer-events-none"
+        />
+      )}
       {/* Sidebar */}
       <div className="w-80 bg-white shadow-lg border-r border-gray-200/50">
         <div className="p-6">

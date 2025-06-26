@@ -70,7 +70,7 @@ export default function Home() {
           >
             Microsoft
           </a>
-          <a href="/about" className="hover:underline">
+          <a href="https://microsoft.com/en-us/about" className="hover:underline">
             About
           </a>
           <a href="/login" className="hover:underline">
