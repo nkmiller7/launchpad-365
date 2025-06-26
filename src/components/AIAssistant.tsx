@@ -123,6 +123,26 @@ export default function AIAssistant({ className }: AIAssistantProps) {
     };
   }, [resizing, resizeStart, popupSize, popupPosition]);
 
+  // Responsive: update popup position on window resize
+  React.useEffect(() => {
+    function handleResize() {
+      // Calculate the max allowed X and Y for the popup
+      const maxX = window.innerWidth - popupSize.width - CHAT_BUTTON_MARGIN;
+      const maxY = window.innerHeight - popupSize.height - CHAT_BUTTON_MARGIN - 100; // 100px extra for bottom margin
+      let newX = popupPosition.x;
+      let newY = popupPosition.y;
+      // If popup would overflow right/bottom, move it in
+      if (newX > maxX) newX = Math.max(LEFT_BOUNDARY, maxX);
+      if (newY > maxY) newY = Math.max(TOP_BOUNDARY, maxY);
+      // If popup would overflow left/top, move it in
+      if (newX < LEFT_BOUNDARY) newX = LEFT_BOUNDARY;
+      if (newY < TOP_BOUNDARY) newY = TOP_BOUNDARY;
+      setPopupPosition({ x: newX, y: newY });
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [popupSize, popupPosition]);
+
   // Chat bubble component for user/assistant
   function ChatBubble({ message, isUser, textSize }: { message: string, isUser: boolean, textSize: number }) {
     return (
