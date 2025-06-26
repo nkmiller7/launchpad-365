@@ -10,7 +10,7 @@ interface EmployeePageProps {
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
   const supabase = await createClient();
-  const { id } = await params;
+  const { id } = params;
 
   // Get the current user (manager)
   const { data: { user }, error: authError } = await supabase.auth.getUser();
