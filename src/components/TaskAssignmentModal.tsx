@@ -65,6 +65,8 @@ export default function TaskAssignmentModal({
     estimatedHours: "",
     department: "",
   });
+  // Track template creation loading state
+  const [templateCreating, setTemplateCreating] = useState(false);
 
   // Custom task form
   const [customTask, setCustomTask] = useState({
@@ -124,7 +126,8 @@ export default function TaskAssignmentModal({
       await assignTaskFromTemplateClient(
         selectedTemplate,
         selectedEmployee,
-        currentUser.id
+        currentUser.id,
+        customTask.dueDate || undefined // Pass due date
       );
       onTaskAssigned?.();
       handleClose();
@@ -136,35 +139,25 @@ export default function TaskAssignmentModal({
     }
   };
 
-  const handleCreateAndAssignTemplate = async () => {
-    if (!newTemplate.title || !selectedEmployee) return;
-
+  // Only create the template, do not assign
+  const handleCreateTemplate = async () => {
+    if (!newTemplate.title) return;
     try {
-      setLoading(true);
-      
-      // First create the template
-      const template = await createTaskTemplateClient({
+      setTemplateCreating(true);
+      await createTaskTemplateClient({
         title: newTemplate.title,
         description: newTemplate.description || undefined,
         estimated_hours: newTemplate.estimatedHours ? parseInt(newTemplate.estimatedHours) : undefined,
         department: newTemplate.department || undefined,
         created_by: currentUser.id,
       });
-
-      // Then assign it to the employee
-      await assignTaskFromTemplateClient(
-        template.id,
-        selectedEmployee,
-        currentUser.id
-      );
-
-      onTaskAssigned?.();
+      loadTemplates(); // Refresh templates list
       handleClose();
     } catch (error) {
-      console.error("Error creating and assigning template:", error);
-      alert("Failed to create and assign template. Please try again.");
+      console.error("Error creating template:", error);
+      alert("Failed to create template. Please try again.");
     } finally {
-      setLoading(false);
+      setTemplateCreating(false);
     }
   };
 
@@ -198,7 +191,7 @@ export default function TaskAssignmentModal({
         handleAssignExistingTemplate();
         break;
       case "new":
-        handleCreateAndAssignTemplate();
+        handleCreateTemplate();
         break;
       case "custom":
         handleAssignCustomTask();
@@ -211,27 +204,33 @@ export default function TaskAssignmentModal({
   return (    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="border-b border-gray-200 pb-4">
-          <DialogTitle className="text-xl font-semibold text-gray-900">Assign Task</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {mode === "new" ? "Create Template" : "Assign Task"}
+          </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Choose how you'd like to assign a task to your team member.
+            {mode === "new"
+              ? "Create a reusable task template for future assignments."
+              : "Choose how you'd like to assign a task to your team member."}
           </DialogDescription>
         </DialogHeader>        <div className="space-y-6 py-4">
-          {/* Employee Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="employee" className="text-sm font-medium text-gray-900">Assign to Employee</Label>            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-              <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                <SelectValue placeholder="Select an employee" className="text-gray-900" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {employees.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id} className="text-gray-900 hover:bg-gray-100">
-                    {employee.full_name || employee.email}
-                    {employee.department && ` (${employee.department})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>          {/* Assignment Mode Selection */}
+          {/* Employee Selection - hide for 'new' mode */}
+          {mode !== "new" && (
+            <div className="space-y-2">
+              <Label htmlFor="employee" className="text-sm font-medium text-gray-900">Assign to Employee</Label>            <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+                  <SelectValue placeholder="Select an employee" className="text-gray-900" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id} className="text-gray-900 hover:bg-gray-100">
+                      {employee.full_name || employee.email}
+                      {employee.department && ` (${employee.department})`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}          {/* Assignment Mode Selection */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-gray-900">Task Assignment Method</Label>
             <div className="grid grid-cols-1 gap-3">
@@ -337,6 +336,17 @@ export default function TaskAssignmentModal({
                   </CardContent>
                 </Card>
               )}
+              {/* Due Date Picker for Existing Template Assignment */}
+              <div className="space-y-2">
+                <Label htmlFor="existingDueDate" className="text-sm font-medium text-gray-900">Due Date</Label>
+                <Input
+                  id="existingDueDate"
+                  type="date"
+                  value={customTask.dueDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                  className="bg-white border-gray-300 text-gray-900"
+                />
+              </div>
             </div>
           )}          {mode === "new" && (
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
@@ -435,15 +445,17 @@ export default function TaskAssignmentModal({
           <Button 
             onClick={handleSubmit} 
             disabled={
-              loading || 
-              !selectedEmployee || 
+              (mode === "new" ? templateCreating : loading) ||
+              (mode !== "new" && !selectedEmployee) ||
               (mode === "existing" && !selectedTemplate) ||
               (mode === "new" && !newTemplate.title) ||
               (mode === "custom" && !customTask.title)
             }
             className="bg-blue-600 border:gray-300 text-gray-700 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500"
           >
-            {loading ? "Assigning..." : "Assign Task"}
+            {mode === "new"
+              ? (templateCreating ? "Creating..." : "Create Template")
+              : (loading ? "Assigning..." : "Assign Task")}
           </Button>
         </DialogFooter>
       </DialogContent>

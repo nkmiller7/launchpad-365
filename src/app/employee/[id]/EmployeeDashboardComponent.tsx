@@ -110,6 +110,13 @@ export default function EmployeeDashboardComponent({
   const totalTasks = tasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
 
+  // Progress Bar color based on progressPercentage
+  const getProgressBarColor = (percentage: number) => {
+    if (percentage === 100) return "bg-green-500";
+    if (percentage >= 50) return "bg-yellow-400";
+    return "bg-red-500";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -232,7 +239,7 @@ export default function EmployeeDashboardComponent({
               <div className="mt-4">
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                    className={`${getProgressBarColor(progressPercentage)} h-3 rounded-full transition-all duration-300`}
                     style={{ width: `${progressPercentage}%` }}
                   ></div>
                 </div>

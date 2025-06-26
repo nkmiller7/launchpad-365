@@ -83,6 +83,14 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
       progressPercentage: 0
     };
   };
+
+  // Progress Bar color based on progressPercentage
+  const getProgressBarColor = (percentage: number) => {
+    if (percentage === 100) return "bg-green-500";
+    if (percentage >= 50) return "bg-yellow-400";
+    return "bg-red-500";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
@@ -155,7 +163,7 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                         <div className="mb-4 space-y-2">
                           <div className="w-full bg-gray-200 rounded-full h-2">
                             <div 
-                              className="bg-green-500 h-2 rounded-full transition-all duration-500 ease-out"
+                              className={`${getProgressBarColor(progress.progressPercentage)} h-2 rounded-full transition-all duration-500 ease-out`}
                               style={{ 
                                 width: loading ? '0%' : `${progress.progressPercentage}%` 
                               }}

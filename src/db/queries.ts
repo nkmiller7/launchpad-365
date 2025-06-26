@@ -360,7 +360,7 @@ export async function assignTaskFromTemplateClient(
       estimated_hours: template.estimated_hours,
       assigned_to: assignedTo,
       assigned_by: assignedBy,
-      template_id: templateId,
+      task_template_id: templateId, // FIXED: was template_id
       task_group_id: taskGroupId,
       due_date: dueDate,
       status: 'pending'
