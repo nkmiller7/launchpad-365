@@ -164,7 +164,8 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                           <div className="text-xs text-gray-700">
                             {loading ? "Loading..." : `${progress.completedTasks} of ${progress.totalTasks} tasks completed`}
                           </div>
-                        </div>                        <Button 
+                        </div>                        
+                        <Button 
                           variant="outline" 
                           className="w-full"
                           asChild

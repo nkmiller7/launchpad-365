@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import EmployeeDashboardComponent from "./EmployeeDashboardComponent";
 
 interface EmployeePageProps {
-  params: Promise<{
+  params: {
     id: string;
-  }>;
+  };
 }
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
@@ -19,17 +19,18 @@ export default async function EmployeePage({ params }: EmployeePageProps) {
     redirect("/login");
   }
 
-  // Get the manager's profile to verify they're a manager
+  // Get the manager's profile using the current user's id
   const { data: managerProfile, error: managerProfileError } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", id)
+    .eq("id", user.id)
     .single();
 
   if (managerProfileError || !managerProfile || managerProfile.role !== "manager") {
     redirect("/dashboard");
   }
-  // Get the employee's profile
+
+  // Get the employee's profile using the id param
   const { data: employeeProfile, error: employeeError } = await supabase
     .from("profiles")
     .select("*")
@@ -47,8 +48,8 @@ export default async function EmployeePage({ params }: EmployeePageProps) {
   }
 
   return <EmployeeDashboardComponent 
-    manager={user} 
+    manager={user}
     managerProfile={managerProfile}
-    employeeProfile={employeeProfile} 
+    employeeProfile={employeeProfile}
   />;
 }
