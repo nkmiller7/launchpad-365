@@ -130,6 +130,17 @@ export async function updateTaskStatus(
   return data;
 }
 
+// Delete a task by ID
+export async function deleteTaskClient(taskId: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', taskId);
+  if (error) throw error;
+  return true;
+}
+
 // Task template operations
 export async function getTaskTemplates(department?: string) {
   const supabase = await createClient();
@@ -360,9 +371,10 @@ export async function assignTaskFromTemplateClient(
       estimated_hours: template.estimated_hours,
       assigned_to: assignedTo,
       assigned_by: assignedBy,
-      task_template_id: templateId, // FIXED: was template_id
+      task_template_id: templateId, 
       task_group_id: taskGroupId,
-      due_date: dueDate,
+      // Store due_date as UTC string to avoid timezone shift
+      due_date: dueDate ? new Date(dueDate + 'T00:00:00Z').toISOString().slice(0, 10) : undefined,
       status: 'pending'
     })
     .select()

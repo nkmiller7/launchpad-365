@@ -172,17 +172,19 @@ export default function AdminComponent({ user, profile, employees }: AdminCompon
                           <div className="text-xs text-gray-700">
                             {loading ? "Loading..." : `${progress.completedTasks} of ${progress.totalTasks} tasks completed`}
                           </div>
-                        </div>                        
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          asChild
-                        >
-                          <a href={`/employee/${employee.id}`} className="flex items-center gap-2">
-                            <Eye className="text-gray-700 h-4 w-4" />
-                            <span className="text-gray-700">View Dashboard</span>
-                          </a>
-                        </Button>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            asChild
+                          >
+                            <a href={`/employee/${employee.id}`} className="flex items-center gap-2">
+                              <Eye className="text-gray-700 h-4 w-4" />
+                              <span className="text-gray-700">View Dashboard</span>
+                            </a>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );

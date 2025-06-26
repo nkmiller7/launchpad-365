@@ -123,11 +123,19 @@ export default function TaskAssignmentModal({
 
     try {
       setLoading(true);
+      // Workaround: always set due date to the next day to compensate for off-by-one bug
+      let dueDate = customTask.dueDate
+        ? (() => {
+            const d = new Date(customTask.dueDate);
+            d.setDate(d.getDate() + 1);
+            return d.toISOString().slice(0, 10);
+          })()
+        : undefined;
       await assignTaskFromTemplateClient(
         selectedTemplate,
         selectedEmployee,
         currentUser.id,
-        customTask.dueDate || undefined // Pass due date
+        dueDate
       );
       onTaskAssigned?.();
       handleClose();
@@ -166,13 +174,21 @@ export default function TaskAssignmentModal({
 
     try {
       setLoading(true);
+      // Workaround: always set due date to the next day to compensate for off-by-one bug
+      let dueDate = customTask.dueDate
+        ? (() => {
+            const d = new Date(customTask.dueDate);
+            d.setDate(d.getDate() + 1);
+            return d.toISOString().slice(0, 10);
+          })()
+        : undefined;
       await createAndAssignTaskClient({
         title: customTask.title,
         description: customTask.description || undefined,
         estimated_hours: customTask.estimatedHours ? parseInt(customTask.estimatedHours) : undefined,
         assigned_to: selectedEmployee,
         assigned_by: currentUser.id,
-        due_date: customTask.dueDate || undefined,
+        due_date: dueDate,
       });
 
       onTaskAssigned?.();

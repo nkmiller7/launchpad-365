@@ -7,7 +7,7 @@ import { Button } from "../../../components/ui/button";
 import { Badge } from "../../../components/ui/badge";
 import { ArrowLeft, Mail, Building, UserCircle, Briefcase, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getUserTasksClient } from "../../../db/queries";
+import { getUserTasksClient, deleteTaskClient } from "../../../db/queries";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
@@ -32,6 +32,7 @@ export default function EmployeeDashboardComponent({
 }: EmployeeDashboardComponentProps) {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   // Load employee's tasks
   useEffect(() => {
@@ -115,6 +116,19 @@ export default function EmployeeDashboardComponent({
     if (percentage === 100) return "bg-green-500";
     if (percentage >= 50) return "bg-yellow-400";
     return "bg-red-500";
+  };
+
+  // Delete a task
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      setDeletingTaskId(taskId);
+      await deleteTaskClient(taskId);
+      await loadEmployeeTasks(); // Always reload from backend for consistency
+    } catch (error) {
+      alert("Failed to delete task. Please try again.");
+    } finally {
+      setDeletingTaskId(null);
+    }
   };
 
   return (
@@ -271,16 +285,17 @@ export default function EmployeeDashboardComponent({
                             task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'
                           }`}>
                             {task.title}
-                          </h4>                          {task.description && (
+                          </h4>
+                          {task.description && (
                             <p className="text-sm text-gray-700 mt-1">{task.description}</p>
                           )}
                         </div>
                       </div>
-                      
-                      <div className="text-right">
+                      <div className="text-right flex flex-col items-end gap-2 min-w-[120px]">
                         <Badge className={getStatusColor(task.status)}>
                           {getStatusText(task.status)}
-                        </Badge>                        <div className="text-sm text-gray-700 mt-1">
+                        </Badge>
+                        <div className="text-sm text-gray-700 mt-1">
                           {formatTaskDate(task.due_date)}
                         </div>
                         {task.assigned_by_profile && (
@@ -288,6 +303,13 @@ export default function EmployeeDashboardComponent({
                             Assigned by {task.assigned_by_profile.full_name || task.assigned_by_profile.email}
                           </div>
                         )}
+                        <button
+                          className="text-xs text-red-600 hover:underline disabled:opacity-50 mt-2"
+                          disabled={deletingTaskId === task.id}
+                          onClick={() => handleDeleteTask(task.id)}
+                        >
+                          {deletingTaskId === task.id ? 'Deleting...' : 'Delete'}
+                        </button>
                       </div>
                     </div>
                   ))}
