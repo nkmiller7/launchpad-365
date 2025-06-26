@@ -2,15 +2,16 @@ import { createClient } from "../../../db/sbserver";
 import { redirect } from "next/navigation";
 import EmployeeDashboardComponent from "./EmployeeDashboardComponent";
 
+
 interface EmployeePageProps {
-  params: {
-    id: string;
-  };
+  params: Promise<{
+    id:string;
+  }>;
 }
 
 export default async function EmployeePage({ params }: EmployeePageProps) {
   const supabase = await createClient();
-  const { id } = params;
+  const { id } = await params;
 
   // Get the current user (manager)
   const { data: { user }, error: authError } = await supabase.auth.getUser();
