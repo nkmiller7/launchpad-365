@@ -3,6 +3,7 @@
 import React from 'react';
 import { X, Calendar, User, Copy, Check, AlertCircle, FileText, Clock } from "lucide-react"
 import { Database } from '../types/database';
+import MarkdownRenderer from '../app/dashboard/MarkdownRenderer';
 
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
 
@@ -132,7 +133,12 @@ export default function TaskDetailModal({ task, isOpen, onClose, onStatusChange,
                 <FileText className="h-5 w-5 text-gray-500" />
                 <h4 className="font-medium text-gray-900">Description</h4>
               </div>
-              <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">{task.description}</p>
+              <p className="text-gray-700 bg-gray-50 p-4 rounded-lg">
+                <MarkdownRenderer
+                  content={task.description}
+                  className="text-sm text-gray-600"
+                />
+              </p>
             </div>
           )}
 

@@ -11,6 +11,7 @@ import TaskDetailModal from '../../components/TaskDetailModal';
 import AIAssistant from '../../components/AIAssistant';
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
+import MarkdownRenderer from './MarkdownRenderer';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type TaskRow = Database['public']['Tables']['tasks']['Row'];
@@ -371,11 +372,14 @@ export default function DashboardComponent({ user, profile }: DashboardComponent
                           {task.title}
                         </h3>
                         {task.description && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            {task.description.length > 100
-                              ? `${task.description.substring(0, 100)}...`
-                              : task.description}
-                          </p>
+                          <div className="mt-1">
+                            <MarkdownRenderer
+                              content={task.description}
+                              truncate={true}
+                              maxLength={100}
+                              className="text-sm text-gray-600"
+                            />
+                          </div>
                         )}
                       </div>
                     </div>
