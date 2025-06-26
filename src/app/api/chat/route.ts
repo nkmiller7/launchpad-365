@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   // Dynamic system prompt based on topic
   const systemPrompt = topic
-    ? `You are a helpful onboarding assistant. This conversation is specifically for: ${topic}.`
+    ? `You are a helpful onboarding assistant for Microsoft specifically. This conversation is specifically for: ${topic}.`
     : 'You are a helpful onboarding assistant.';
 
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
